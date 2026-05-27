@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1e3a5f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Album Mundial 2026</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f3f4f6;overscroll-behavior:none;padding-bottom:env(safe-area-inset-bottom)}
+.header{position:fixed;top:0;left:0;right:0;z-index:20;background:linear-gradient(135deg,#1e3a5f,#4a2d7a);color:#fff;padding:14px 16px 6px;padding-top:calc(14px + env(safe-area-inset-top));box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header h1{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header .sub{font-size:11px;opacity:.8;margin-top:2px}
+.hdr-spacer{height:calc(56px + env(safe-area-inset-top))}
+.back-btn{font-size:22px;background:none;border:none;color:#fff;cursor:pointer;padding:0 8px 0 0;vertical-align:middle}
+.hdr-row{display:flex;align-items:center}
+.hdr-content{min-width:0;flex:1}
+.back-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:28px;padding:0 10px 0 0;line-height:1;min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center}
+.overview{background:#fff;border-radius:16px;padding:16px;margin:12px 16px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.ov-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px}
+.ov-pct{font-size:30px;font-weight:900;color:#1e3a5f}
+.ov-sub{font-size:13px;color:#9ca3af}
+.ov-reps{text-align:right}
+.ov-reps b{font-size:20px;color:#b45309;display:block}
+.ov-counts{display:flex;gap:12px;margin-top:8px;font-size:12px}
+.c-green{color:#16a34a;font-weight:600}.c-red{color:#dc2626;font-weight:600}.c-amber{color:#b45309;font-weight:600}
+.bar{width:100%;border-radius:99px;overflow:hidden;background:#e5e7eb}
+.bar-sm{height:6px}.bar-md{height:10px}
+.bar-fill{height:100%;border-radius:99px;transition:width .4s}
+.quick-row{display:flex;gap:8px;margin:0 16px}
+.quick-btn{flex:1;background:#fff;border-radius:14px;padding:10px 8px;border:1px solid #e5e7eb;text-align:center;cursor:pointer;font-size:20px}
+.quick-btn:active{background:#f9fafb}
+.quick-btn small{display:block;font-size:11px;color:#6b7280;margin-top:4px}
+.sec-title{font-size:12px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin:16px 16px 8px}
+.card{background:#fff;border-radius:14px;padding:14px;margin:0 16px 8px;border:1px solid #e5e7eb;cursor:pointer;transition:transform .12s}
+.card:active{transform:scale(.98)}
+.card-green{background:#f0fdf4;border-color:#86efac}
+.card-row{display:flex;align-items:center;justify-content:space-between}
+.card-left{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
+.card-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-code{font-size:11px;color:#b0b0b0}
+.card-flag{font-size:18px;flex-shrink:0}
+.card-stat{font-size:13px;color:#9ca3af;flex-shrink:0;margin-left:8px}
+.card-stat-done{color:#16a34a;font-weight:700}
+.chips{display:flex;gap:6px;padding:10px 16px 14px;overflow-x:auto}
+.hdr-spacer-chips{height:calc(120px + env(safe-area-inset-top))}
+.chip{padding:5px 12px;border-radius:20px;font-size:13px;font-weight:600;border:none;cursor:pointer;white-space:nowrap}
+.chip-on{background:#1e3a5f;color:#fff}.chip-off{background:#fff;color:#6b7280;border:1px solid #d1d5db}
+.sticker{background:#fff;border-radius:14px;padding:12px;margin:0 16px 8px;border:2px solid #e5e7eb;cursor:pointer;transition:all .15s}
+.sticker:active{transform:scale(.98)}
+.sticker-owned{background:#f0fdf4;border-color:#86efac;opacity:1}
+.sticker-miss{opacity:.55}
+.sticker-row{display:flex;align-items:center;justify-content:space-between}
+.sticker-left{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
+.badge{font-size:11px;font-weight:700;padding:3px 7px;border-radius:8px;flex-shrink:0}
+.badge-green{background:#22c55e;color:#fff}.badge-gray{background:#d1d5db;color:#6b7280}.badge-amber{background:#f59e0b;color:#fff}
+.sticker-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foil{color:#eab308;font-size:10px;margin-left:4px}
+.dupe-ctrl{display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:8px}
+.btn-r{width:30px;height:30px;border-radius:50%;border:none;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.btn-r:active{opacity:.7}
+.btn-minus{background:#fee2e2;color:#dc2626}.btn-plus{background:#fef3c7;color:#b45309}
+.dupe-num{font-size:13px;font-weight:700;width:24px;text-align:center}
+.search-input{width:100%;padding:12px;border-radius:14px;border:2px solid #e5e7eb;outline:none;font-size:16px;margin:16px 0 8px}
+.search-input:focus{border-color:#3b82f6}
+.search-sec{font-size:11px;color:#9ca3af;margin-top:4px}
+.add-btn{margin-left:8px;padding:5px 12px;border-radius:10px;font-size:13px;font-weight:700;border:none;cursor:pointer;flex-shrink:0}
+.add-btn-on{background:#dcfce7;color:#16a34a}.add-btn-off{background:#f3f4f6;color:#6b7280}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px}
+.stat-card{background:#fff;border-radius:16px;padding:14px;border:1px solid #e5e7eb;text-align:center}
+.stat-big{font-size:28px;font-weight:900}
+.stat-label{font-size:11px;color:#9ca3af;margin-top:2px}
+.rank-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f3f4f6}
+.rank-left{display:flex;align-items:center;gap:8px;min-width:0}
+.rank-num{font-size:11px;font-weight:700;color:#b0b0b0;width:20px}
+.rank-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.rank-detail{font-size:12px;color:#b0b0b0}
+.rank-pct{font-size:14px;font-weight:700;width:40px;text-align:right}
+.empty{color:#9ca3af;font-size:13px;text-align:center;margin-top:32px}
+.pad16{padding:16px}
+.toggle-view{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.toggle-view:active{background:rgba(255,255,255,.35)}
+.album-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 12px}
+.album-card{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .12s;aspect-ratio:3/4;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px 4px}
+.album-card:active{transform:scale(.95)}
+.album-card-miss{background:linear-gradient(145deg,#d1d5db,#e5e7eb);border:2px dashed #b0b0b0}
+.album-card-owned{background:linear-gradient(145deg,#dcfce7,#bbf7d0);border:2px solid #22c55e;box-shadow:0 2px 8px rgba(34,197,94,.25)}
+.album-card-foil{background:linear-gradient(145deg,#fef9c3,#fde68a);border:2px solid #eab308;box-shadow:0 2px 8px rgba(234,179,8,.3)}
+.album-card-foil.album-card-miss{background:linear-gradient(145deg,#e5e7eb,#d1d5db);border:2px dashed #b0b0b0;box-shadow:none}
+.album-icon{font-size:32px;margin-bottom:4px}
+.album-icon-miss{filter:grayscale(1);opacity:.35}
+.album-code{font-size:10px;font-weight:800;letter-spacing:.5px;margin-bottom:2px}
+.album-code-miss{color:#9ca3af}
+.album-code-owned{color:#15803d}
+.album-name{font-size:10px;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-height:2.4em}
+.album-name-miss{color:#9ca3af}
+.album-name-owned{color:#1e3a5f;font-weight:600}
+.album-dupe{position:absolute;top:4px;right:4px;background:#f59e0b;color:#fff;font-size:10px;font-weight:800;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.album-check{position:absolute;top:4px;left:4px;font-size:14px}
+.album-dupe-ctrl{display:flex;align-items:center;gap:2px;margin-top:4px}
+.album-btn{width:22px;height:22px;border-radius:50%;border:none;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.album-btn:active{opacity:.7}
+.album-btn-m{background:#fee2e2;color:#dc2626}
+.album-btn-p{background:#fef3c7;color:#b45309}
+.album-dupe-n{font-size:11px;font-weight:700;color:#b45309;width:16px;text-align:center}
+.album-page{background:#fff;border-radius:16px;margin:0 8px 16px;padding:16px 8px;border:1px solid #e5e7eb;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.tools-row{display:flex;gap:6px;margin:8px 16px 0;flex-wrap:wrap}
+.tool-btn{flex:1;min-width:0;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:8px 6px;text-align:center;cursor:pointer;font-size:11px;font-weight:600;color:#6b7280}
+.tool-btn:active{background:#f3f4f6}
+.bulk-panel{background:#fff;border-radius:14px;margin:10px 16px;padding:14px;border:1px solid #e5e7eb}
+.bulk-panel h3{font-size:13px;font-weight:700;margin-bottom:8px;color:#1e3a5f}
+.bulk-ta{width:100%;min-height:70px;border:2px solid #e5e7eb;border-radius:10px;padding:10px;font-size:14px;font-family:inherit;resize:vertical;outline:none}
+.bulk-ta:focus{border-color:#3b82f6}
+.bulk-btns{display:flex;gap:8px;margin-top:10px}
+.bulk-go{flex:1;padding:10px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer}
+.bulk-go:active{opacity:.8}
+.bulk-add{background:#22c55e;color:#fff}
+.bulk-rem{background:#ef4444;color:#fff}
+.bulk-hint{font-size:11px;color:#9ca3af;margin-top:6px}
+.bulk-result{margin-top:8px;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:600}
+.export-panel{background:#fff;border-radius:14px;margin:10px 16px;padding:14px;border:1px solid #e5e7eb}
+.export-panel h3{font-size:13px;font-weight:700;margin-bottom:8px;color:#1e3a5f}
+.export-ta{width:100%;min-height:90px;border:2px solid #e5e7eb;border-radius:10px;padding:10px;font-size:13px;font-family:monospace;resize:vertical;outline:none;background:#f9fafb}
+.export-ta:focus{border-color:#3b82f6}
+.copy-btn{width:100%;padding:10px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;background:#3b82f6;color:#fff;margin-top:8px}
+.copy-btn:active{opacity:.8}
+.mb24{margin-bottom:24px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ─── DATA ────────────────────────────────────────────────────
+var INTRO=[
+{c:"00",l:"Panini Logo - We Are Panini",fo:1},{c:"FWC1",l:"Emblema Oficial",fo:1},{c:"FWC2",l:"Emblema Oficial (2)",fo:1},
+{c:"FWC3",l:"Mascotas Oficiales",fo:1},{c:"FWC4",l:"Eslogan Oficial",fo:1},{c:"FWC5",l:"Balón Oficial",fo:1},
+{c:"FWC6",l:"Canadá - Sedes",fo:1},{c:"FWC7",l:"México - Sedes",fo:1},{c:"FWC8",l:"USA - Sedes",fo:1}
+];
+var HIST=[
+{c:"FWC9",l:"Italia 1934",fo:1},{c:"FWC10",l:"Uruguay 1950",fo:1},{c:"FWC11",l:"Alemania 1954",fo:1},
+{c:"FWC12",l:"Brasil 1962",fo:1},{c:"FWC13",l:"Alemania 1974",fo:1},{c:"FWC14",l:"Argentina 1986",fo:1},
+{c:"FWC15",l:"Brasil 1994",fo:1},{c:"FWC16",l:"Brasil 2002",fo:1},{c:"FWC17",l:"Italia 2006",fo:1},
+{c:"FWC18",l:"Alemania 2014",fo:1},{c:"FWC19",l:"Argentina 2022",fo:1}
+];
+var TM=[
+["MEX","México","🇲🇽","Luis Malagón","Johan Vasquez","Jorge Sánchez","Cesar Montes","Jesus Gallardo","Israel Reyes","Diego Lainez","Carlos Rodriguez","Edson Alvarez","Orbelin Pineda","Marcel Ruiz","Érick Sánchez","Hirving Lozano","Santiago Giménez","Raúl Jiménez","Alexis Vega","Roberto Alvarado","Cesar Huerta"],
+["RSA","Sudáfrica","🇿🇦","Ronwen Williams","Sipho Chaine","Aubrey Modiba","Samukele Kabini","Mbekezeli Mbokazi","Khulumani Ndamane","Siyabonga Ngezana","Khuliso Mudau","Nkosinathi Sibisi","Teboho Mokoena","Thalente Mbatha","Bathasi Aubaas","Yaya Sithole","Sipho Mbule","Lyle Foster","Iqraam Rayners","Mohau Nkota","Oswin Appollis"],
+["KOR","Corea del Sur","🇰🇷","Hyeon-woo Jo","Seung-Gyu Kim","Min-jae Kim","Yu-min Cho","Young-woo Seol","Han-beom Lee","Tae-seok Lee","Myung-jae Lee","Jae-sung Lee","In-beom Hwang","Kang-in Lee","Seung-ho Paik","Jens Castrop","Dongg-yeong Lee","Gue-sung Cho","Heung-min Son","Hee-chan Hwang","Hyeon-Gyu Oh"],
+["CZE","Chequia","🇨🇿","Matej Kovar","Jindrich Stanek","Ladislav Krejci","Vladimir Coufal","Jaroslav Zeleny","Tomas Holes","David Zima","Michal Sadilek","Lukas Provod","Lukas Cerv","Tomas Soucek","Pavel Sulc","Matej Vydra","Vasil Kusej","Tomas Chory","Vaclav Cerny","Adam Hlozek","Patrik Schick"],
+["CAN","Canadá","🇨🇦","Dayne St.Clair","Alphonso Davies","Alistair Johnston","Samuel Adekugbe","Riche Larvea","Derek Cornelius","Moïse Bombito","Kamal Miller","Stephen Eustáquio","Ismaël Koné","Jonathan Osorio","Jacob Shaffelburg","Mathieu Choinière","Niko Sigur","Tajon Buchanan","Liam Millar","Cyle Larin","Jonathan David"],
+["BIH","Bosnia y Herz.","🇧🇦","Nikola Vasilj","Amer Dedic","Sead Kolasinac","Tarik Muharemovic","Nihad Mujakic","Nikola Katic","Amir Hadziahmetovic","Benjamin Tahirovic","Armin Gigovic","Ivan Sunjic","Ivan Basic","Dzenis Burnic","Esmir Bajraktarevic","Amar Memic","Ermedin Demirovic","Edin Dzeko","Samed Bazdar","Haris Tabakovic"],
+["QAT","Catar","🇶🇦","Meshaal Barsham","Sultan Albrake","Lucas Mendes","Homam Ahmed","Boualem Khoukhi","Pedro Miguel","Tarek Salman","Mohamed Al-Mannai","Karim Boudiaf","Assim Madibo","Ahmed Fatehi","Mohammed Waad","Abdulaziz Hatem","Hassan Al-Haydos","Edmilson Junior","Akram Hassan Afif","Ahmed Al Ganehi","Almoez Ali"],
+["SUI","Suiza","🇨🇭","Gregor Kobel","Yvon Mvogo","Manuel Akanji","Ricardo Rodriguez","Nico Elvedi","Aurèle Amenda","Silvan Widmer","Granit Xhaka","Denis Zakaria","Remo Freuler","Fabian Rieder","Ardon Jashari","Johan Manzambi","Michel Aebischer","Breel Embolo","Ruben Vargas","Dan Ndoye","Zeki Amdouni"],
+["BRA","Brasil","🇧🇷","Alisson","Bento","Marquinhos","Éder Militão","Gabriel Magalhães","Danilo","Wesley","Lucas Paquetá","Casemiro","Bruno Guimarães","Luiz Henrique","Vinicius Júnior","Rodrygo","João Pedro","Matheus Cunha","Gabriel Martinelli","Raphinha","Estévão"],
+["MAR","Marruecos","🇲🇦","Yassine Bounou","Munir El Kajoui","Achraf Hakimi","Noussair Mazraoui","Nayef Aguerd","Roman Saiss","Jawad El Yamio","Adam Masina","Sofyan Amrabat","Azzedine Ounahi","Eliesse Ben Seghir","Bilal El Khannouss","Ismael Saibari","Youssef En-Nesyri","Abde Ezzalzouli","Soufiane Rahimi","Brahim Diaz","Ayoub El Kaabi"],
+["HAI","Haití","🇭🇹","Johny Placide","Carlens Arcus","Martin Expérience","Jean-Kevin Duverne","Ricardo Adé","Duke Lacroix","Garven Metusala","Hannes Delcroix","Leverton Pierre","Danley Jean Jacques","Jean-Ricner Bellegarde","Christopher Attys","Derrick Etienne Jr","Josue Casimir","Ruben Providence","Duckens Nazon","Louicius Deedson","Frantzdy Pierrot"],
+["SCO","Escocia","🏴󠁧󠁢󠁳󠁣󠁴󠁿","Angus Gunn","Jack Hendry","Kieran Tierney","Aaron Hickey","Andrew Robertson","Scott McKenna","John Souttar","Anthony Ralston","Grant Hanley","Scott McTominay","Billy Gilmour","Lewis Ferguson","Ryan Christie","Kenny McLean","John McGinn","Lyndon Dykes","Che Adams","Ben Gannon-Doak"],
+["USA","Estados Unidos","🇺🇸","Math Freese","Chris Richards","Tim Ream","Mark McKenzie","Alex Freeman","Antonee Robinson","Tyler Adams","Tanner Tessmann","Weston McKenny","Christian Roldan","Timothy Weah","Diego Luna","Malik Tillman","Christian Pulisic","Brenden Aaronson","Ricardo Pepi","Haji Wright","Folarin Balogun"],
+["PAR","Paraguay","🇵🇾","Roberto Fernandez","Orlando Gill","Gustavo Gomez","Fabián Balbuena","Juan José Cáceres","Omar Alderete","Junior Alonso","Mathías Villasanti","Diego Gomez","Damián Bobadilla","Andres Cubas","Matias Galarza Fonda","Julio Enciso","Alejandro Romero Gamarra","Miguel Almirón","Ramon Sosa","Angel Romero","Antonio Sanabria"],
+["AUS","Australia","🇦🇺","Mathew Ryan","Joe Gauci","Harry Souttar","Alessandro Circati","Jordan Bos","Aziz Behich","Cameron Burgess","Lewis Miller","Milos Degenek","Jackson Irvine","Riley McGree","Aiden O'Neill","Connor Metcalfe","Patrick Yazbek","Craig Goodwin","Kusini Vengi","Nestory Irankunda","Mohamed Touré"],
+["TUR","Türkiye","🇹🇷","Ugurcan Cakir","Mert Muldur","Zeki Celik","Abdulkerim Bardakci","Caglar Soyuncu","Merih Demiral","Ferdi Kadioglu","Kaan Ayhan","Ismail Yuksek","Hakan Calhanoglu","Orkun Kokcu","Arda Guler","Irfan Can Kahveci","Yunus Akgun","Can Uzun","Baris Alper Yilmaz","Kerem Akturkoglu","Kenan Yildiz"],
+["GER","Alemania","🇩🇪","Marc-André ter Stegen","Jonathan Tah","David Raum","Nico Schlotterbeck","Antonio Rüdiger","Waldemar Anton","Ridle Baku","Maximilian Mittelstadt","Joshua Kimmich","Florian Wirtz","Felix Nmecha","Leon Goretzka","Jamal Musiala","Serge Gnabry","Kai Havertz","Leroy Sane","Karim Adeyemi","Nick Woltemade"],
+["CUW","Curazao","🇨🇼","Eloy Room","Armando Obispo","Sherel Floranus","Jurien Gaari","Joshua Brenet","Roshon Van Eijma","Shurandy Sambo","Livano Comenencia","Godfried Roemeratoe","Juninho Bacuna","Leandro Bacuna","Tahith Chong","Kenji Gorre","Jearl Margaritha","Jurgen Locadia","Jeremy Antonisse","Gervane Kastaneer","Sontje Hansen"],
+["CIV","Costa de Marfil","🇨🇮","Yahia Fofana","Ghislain Konan","Wilfried Singo","Odilon Kossounou","Evan Ndicka","Willy Boly","Emmanuel Agbadou","Ousmane Diomande","Franck Kessie","Seko Fofana","Ibrahim Sangare","Jean-Philippe Gbamin","Amad Diallo","Sébastien Haller","Simon Adingra","Yan Diomande","Evann Guessand","Oumar Diakite"],
+["ECU","Ecuador","🇪🇨","Hernán Galíndez","Gonzalo Valle","Piero Hincapié","Pervis Estupiñán","Willian Pacho","Ángelo Preciado","Joel Ordóñez","Moises Caicedo","Alan Franco","Kendry Paez","Pedro Vite","John Veboah","Leonardo Campana","Gonzalo Plata","Nilson Angulo","Alan Minda","Kevin Rodriguez","Enner Valencia"],
+["NED","Países Bajos","🇳🇱","Bart Verbruggen","Virgil van Dijk","Micky van de Ven","Jurrien Timber","Denzel Dumfries","Nathan Aké","Jeremie Frimpong","Jan Paul van Hecke","Tijjani Reijnders","Ryan Gravenberch","Teun Koopmeiners","Frenkie de Jong","Xavi Simons","Justin Kluivert","Memphis Depay","Donyell Malen","Wout Weghorst","Cody Gakpo"],
+["JPN","Japón","🇯🇵","Zion Suzuki","Henry Heroki Mochizuki","Ayumu Seko","Junnosuke Suzuki","Shogo Taniguchi","Tsuyoshi Watanabe","Kaishu Sano","Yuki Soma","Ao Tanaka","Daichi Kamada","Takefusa Kubo","Ritsu Doan","Keito Nakamura","Takumi Minamino","Shuto Machino","Junya Ito","Koki Ogawa","Ayase Ueda"],
+["SWE","Suecia","🇸🇪","Victor Johansson","Isak Hien","Gabriel Gudmundsson","Emil Holm","Victor Nilsson Lindelöf","Gustaf Lagerbielke","Lucas Bergvall","Hugo Larsson","Jesper Karlström","Yasin Ayari","Mattias Svanberg","Daniel Svensson","Ken Sema","Roony Bardghji","Dejan Kulusevski","Anthony Elanga","Alexander Isak","Viktor Gyökeres"],
+["TUN","Túnez","🇹🇳","Bechir Ben Said","Aymen Dahmen","Yan Valery","Montassar Talbi","Yassine Meriah","Ali Abdi","Dylan Bronn","Ellyes Skhiri","Aissa Laidouni","Ferjani Sassi","Mohamed Ali Ben Romdhane","Hannibal Mejbri","Elias Achouri","Elias Saad","Hazem Mastouri","Ismael Gharbi","Sayfallah Ltaief","Naim Sliti"],
+["BEL","Bélgica","🇧🇪","Thibaut Courtois","Arthur Theate","Timothy Castagne","Zeno Debast","Brandon Mechele","Maxim De Cuyper","Thomas Meunier","Youri Tielemans","Amadou Onana","Nicolas Raskin","Alexis Saelemaekers","Hans Vanaken","Kevin De Bruyne","Jérémy Doku","Charles De Ketelaere","Leandro Trossard","Loïs Openda","Romelu Lukaku"],
+["EGY","Egipto","🇪🇬","Mohamed El Shenawy","Mohamed Hany","Mohamed Hamdy","Yasser Ibrahim","Khaled Sobhi","Ramy Rabia","Hossam Abdelmaguid","Ahmed Fatouh","Marwan Attia","Zizo","Hamdy Fathy","Mohamed Lasheen","Emam Ashour","Osama Faisal","Mohamed Salah","Mostafa Mohamed","Trezeguet","Omar Marmoush"],
+["IRN","Irán","🇮🇷","Alireza Beiranvand","Morteza Pouraliganji","Ehsan Hajsafi","Milad Mohammadi","Shojae Khalilzadeh","Ramin Rezaeian","Hossein Kanaani","Sadegh Moharrami","Saleh Hardani","Saeed Ezatolahi","Saman Ghoddos","Omid Noorafkan","Roozbeh Cheshmi","Mohammad Mohebi","Sardar Azmoun","Mehdi Taremi","Alireza Jahanbakhsh","Ali Gholizadeh"],
+["NZL","Nueva Zelanda","🇳🇿","Max Crocombe Payne","Alex Paulsen","Michael Boxall","Liberato Cacace","Tim Payne","Tyler Bindon","Francis de Vries","Finn Surman","Joe Bell","Sarpreet Singh","Ryan Thomas","Matthew Garbett","Marko Stamenić","Ben Old","Chris Wood","Elijah Just","Callum McCowatt","Kosta Barbarouses"],
+["ESP","España","🇪🇸","Unai Simon","Robin Le Normand","Aymeric Laporte","Dean Huijsen","Pedro Porro","Dani Carvajal","Marc Cucurella","Martín Zubimendi","Rodri","Pedri","Fabian Ruiz","Mikel Merino","Lamine Yamal","Dani Olmo","Nico Williams","Ferran Torres","Álvaro Morata","Mikel Oyarzabal"],
+["CPV","Cabo Verde","🇨🇻","Vozinha","Logan Costa","Pico","Diney","Steven Moreira","Wagner Pina","Joao Paulo","Yannick Semedo","Kevin Pina","Patrick Andrade","Jamiro Monteiro","Deroy Duarte","Garry Rodrigues","Jovane Cabral","Ryan Mendes","Dailon Livramento","Willy Semedo","Bebe"],
+["KSA","Arabia Saudita","🇸🇦","Nawaf Alaqidi","Abdulrahman Al-Sanbi","Saud Abdulhamid","Nawaf Bouwashl","Jihad Thakri","Moteb Al-Harbi","Hassan Altambakti","Musab Aljuwayr","Ziyad Aljohani","Abdullah Alkhaibari","Nasser Aldawsari","Saleh Abu Alshamat","Marwan Alsahafi","Salem Aldawsari","Abdulrahman Al-Aboud","Feras Akbrikan","Saleh Alshehri","Abdullah Al-Hamdan"],
+["URU","Uruguay","🇺🇾","Sergio Rochet","Santiago Mele","Ronald Araujo","José María Giménez","Sebastian Caceres","Mathias Olivera","Guillermo Varela","Nahitan Nandez","Federico Valverde","Giorgian De Arrascaeta","Rodrigo Bentancur","Manuel Ugarte","Nicolás de la Cruz","Maxi Araujo","Darwin Núñez","Federico Viñas","Rodrigo Aguirre","Facundo Pellistri"],
+["FRA","Francia","🇫🇷","Mike Maignan","Theo Hernandez","William Saliba","Jules Kounde","Ibrahima Konate","Dayot Upamecano","Lucas Digne","Aurélien Tchouaméni","Eduardo Camavinga","Manu Kone","Adrien Rabiot","Michael Olise","Ousmane Dembele","Bradley Barcola","Désiré Doué","Kingsley Coman","Hugo Ekitike","Kylian Mbappe"],
+["SEN","Senegal","🇸🇳","Edouard Mendy","Yehvann Diouf","Moussa Niakhaté","Abdoulaye Seck","Ismail Jakobs","El Hadji Malick Diouf","Kalidou Koulibaly","Idrissa Gana Gueye","Pape Matar Sarr","Pape Gueye","Habib Diarra","Lamine Camara","Sadio Mane","Ismaïla Sarr","Boulaye Dia","Iliman Ndiaye","Nicolas Jackson","Krepin Diatta"],
+["IRQ","Irak","🇮🇶","Jalal Hassan","Rebin Sulaka","Hussein Ali","Akam Hashem","Merchas Doski","Zaid Tahseen","Manaf Younis","Zidane Iqbal","Amir Al-Ammari","Ibrahim Bavesh","Ali Jasim","Youssef Amyn","Aimar Sher","Marko Farji","Osama Rashid","Ali Al-Hamadi","Aymen Hussein","Mohanad Ali"],
+["NOR","Noruega","🇳🇴","Orjan Nyland","Julian Ryerson","Leo Ostigård","Kristoffer Vassbakk Ajer","Marcus Holmgren Pedersen","David Møller Wolfe","Torbjørn Heggem","Morten Thorsby","Martin Ødegaard","Sander Berge","Andreas Schjelderup","Patrick Berg","Erling Haaland","Alexander Sørloth","Aron Dønnum","Jorgen Strand Larsen","Antonio Nusa","Oscar Bobb"],
+["ARG","Argentina","🇦🇷","Emiliano Martinez","Nahuel Molina","Cristian Romero","Nicolas Otamendi","Nicolas Tagliafico","Leonardo Balerdi","Enzo Fernandez","Alexis Mac Allister","Rodrigo De Paul","Exequiel Palacios","Leandro Paredes","Nico Paz","Franco Mastantuono","Nico Gonzalez","Lionel Messi","Lautaro Martinez","Julian Alvarez","Giuliano Simeone"],
+["ALG","Argelia","🇩🇿","Alexis Guendouz","Ramy Bensebaini","Youcef Atal","Rayan Aït-Nouri","Mohamed Amine Tougai","Aïssa Mandi","Ismael Bennacer","Houssem Aquar","Hicham Boudaoui","Ramiz Zerrouki","Nabil Bentalab","Farés Chaibi","Riyad Mahrez","Said Benrahma","Anis Hadj Moussa","Amine Gouiri","Baghdad Bounedjah","Mohammed Amoura"],
+["AUT","Austria","🇦🇹","Alexander Schlager","Patrick Pentz","David Alaba","Kevin Danso","Philipp Lienhart","Stefan Posch","Phillipp Mwene","Alexander Prass","Xaver Schlager","Marcel Sabitzer","Konrad Laimer","Florian Grillitsch","Nicolas Seiwald","Romano Schmid","Patrick Wimmer","Christoph Baumgartner","Michael Gregoritsch","Marko Arnautović"],
+["JOR","Jordania","🇯🇴","Yazeed Abulaila","Ihsan Haddad","Mohammad Abu Hashish","Yazan Al-Arab","Abdallah Nasib","Saleem Obaid","Mohammad Abualnadi","Ibrahim Saadeh","Nizar Al-Rashdan","Noor Al-Rawabdeh","Mohannad Abu Taha","Amer Jamous","Musa Al-Taamari","Yazan Al-Naimat","Mahmoud Al-Mardi","Ali Olwan","Mohammad Abu Zrayq","Ibrahim Sabra"],
+["POR","Portugal","🇵🇹","Diogo Costa","Jose Sa","Ruben Dias","João Cancelo","Diogo Dalot","Nuno Mendes","Gonçalo Inácio","Bernardo Silva","Bruno Fernandes","Ruben Neves","Vitinha","João Neves","Cristiano Ronaldo","Francisco Trincao","João Felix","Gonçalo Ramos","Pedro Neto","Rafael Leão"],
+["COD","RD Congo","🇨🇩","Lionel Mpasi","Aaron Wan-Bissaka","Axel Tuanzebe","Arthur Masuaku","Chancel Mbemba","Joris Kayembe","Charles Pickel","Ngal'ayel Mukau","Edo Kayembe","Samuel Moutoussamy","Noah Sadiki","Théo Bongonda","Meschak Elia","Yoane Wissa","Brian Cipenga","Fiston Mayele","Cédric Bakambu","Nathanaël Mbuku"],
+["UZB","Uzbekistán","🇺🇿","Utkir Yusupov","Farrukh Savfiev","Sherzod Nasrullaev","Umar Eshmurodov","Husniddin Aliqulov","Rustamjon Ashurmatov","Khojiakbar Alijonov","Abdukodir Khusanov","Odiljon Hamrobekov","Otabek Shukurov","Jamshid Iskanderov","Azizbek Turgunboev","Khojimat Erkinov","Eldor Shomurodov","Oston Urunov","Jaloliddin Masharipov","Igor Sergeev","Abbosbek Fayzullaev"],
+["COL","Colombia","🇨🇴","Camilo Vargas","David Ospina","Dávinson Sánchez","Yerry Mina","Daniel Munoz","Johan Mojica","Jhon Lucumí","Santiago Arias","Jefferson Lerma","Kevin Castaño","Richard Rios","James Rodriguez","Juan Fernando Quintero","Jorge Carrascal","Jon Arias","Jhon Cordova","Luis Suarez","Luis Diaz"],
+["ENG","Inglaterra","🏴󠁧󠁢󠁥󠁮󠁧󠁿","Jordan Pickford","John Stones","Marc Guéhi","Ezri Konsa","Trent Alexander-Arnold","Reece James","Dan Burn","Jordan Henderson","Declan Rice","Jude Bellingham","Cole Palmer","Morgan Rogers","Anthony Gordon","Phil Foden","Bukayo Saka","Harry Kane","Marcus Rashford","Ollie Watkins"],
+["CRO","Croacia","🇭🇷","Dominik Livaković","Duje Caleta-Car","Josko Gvardiol","Josip Stanišić","Luka Vušković","Josip Sutalo","Kristijan Jakic","Luka Modrić","Mateo Kovacic","Martin Baturina","Lovro Majer","Mario Pasalic","Petar Sucic","Ivan Perišić","Marco Pasalic","Ante Budimir","Andrej Kramarić","Franjo Ivanovic"],
+["GHA","Ghana","🇬🇭","Lawrence Ati Zigi","Tariq Lamptey","Mohammed Salisu","Alidu Seidu","Alexander Djiku","Gideon Mensah","Caleb Yirenkyi","Abdul Issahaku Fatawu","Thomas Partey","Salis Abdul Samed","Kamaldeen Sulemana","Mohammed Kudus","Inaki Williams","Jordan Ayew","Andrew Ayew","Joseph Paintsil","Osman Bukari","Antoine Semenyo"],
+["PAN","Panamá","🇵🇦","Orlando Mosquera","Luis Mejia","Fidel Escobar","Andres Andrade","Michael Amir Murillo","Eric Davis","Jose Cordoba","Cesar Blackman","Cristian Martinez","Aníbal Godoy","Adalberto Carrasquilla","Édgar Bárcenas","Carlos Harvey","Ismael Díaz","Jose Fajardo","Cecilio Waterman","Jose Luiz Rodriguez","Alberto Quintero"]
+];
+
+// Build sections
+function buildTeam(t){
+  var id=t[0],nm=t[1],fl=t[2],pl=t.slice(3),s=[];
+  s.push({c:id+"1",l:nm+" - Escudo",fo:1});
+  for(var i=0;i<11;i++) s.push({c:id+(i+2),l:pl[i]});
+  s.push({c:id+"13",l:nm+" - Foto Equipo"});
+  for(var i=11;i<18;i++) s.push({c:id+(i+3),l:pl[i]});
+  return {id:id,name:nm,flag:fl,stickers:s};
+}
+var SECS=[{id:"intro",name:"FIFA World Cup 2026",flag:"🏆",stickers:INTRO},{id:"history",name:"Historia Mundiales",flag:"📜",stickers:HIST}];
+for(var i=0;i<TM.length;i++) SECS.push(buildTeam(TM[i]));
+var TOTAL=0; for(var i=0;i<SECS.length;i++) TOTAL+=SECS[i].stickers.length;
+
+// ─── STATE ───────────────────────────────────────────────────
+var owned={},dupes={};
+try{var d=JSON.parse(localStorage.getItem("panini2026"));if(d){owned=d.owned||{};dupes=d.dupes||{};}}catch(e){}
+function save(){try{localStorage.setItem("panini2026",JSON.stringify({owned:owned,dupes:dupes}));}catch(e){}}
+
+var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,checkResult="";
+var app=document.getElementById("app");
+
+function ownedCount(){var n=0;for(var k in owned)if(owned[k])n++;return n;}
+function dupeCount(){var n=0;for(var k in dupes)n+=dupes[k];return n;}
+function secStats(sec){var t=sec.stickers.length,h=0;for(var i=0;i<t;i++)if(owned[sec.stickers[i].c])h++;return{total:t,have:h,pct:t?Math.round(h/t*100):0};}
+function barColor(v){return v<30?"#ef4444":v<70?"#f59e0b":"#22c55e";}
+function barHTML(v,size){return '<div class="bar bar-'+size+'" style="background:#e5e7eb"><div class="bar-fill" style="width:'+Math.min(v,100)+'%;background:'+barColor(v)+'"></div></div>';}
+
+function render(){
+  if(view==="home") renderHome();
+  else if(view==="section") renderSection();
+  else if(view==="search") renderSearch();
+  else if(view==="dupes") renderDupes();
+  else if(view==="stats") renderStats();
+}
+
+function hdrBack(title,sub){
+  return '<div class="header"><div class="hdr-row"><button class="back-btn" onclick="goHome()">←</button><div class="hdr-content"><h1>'+title+'</h1>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div></div></div><div class="hdr-spacer"></div>';
+}
+
+function renderHome(){
+  var oc=ownedCount(),dc=dupeCount(),pct=(oc/TOTAL*100).toFixed(1);
+  var h='<div class="header"><h1>🏆 Álbum Mundial 2026</h1><div class="sub">Panini Colombia · 980 láminas</div></div>';
+  h+='<div class="hdr-spacer"></div>';
+  h+='<div class="overview"><div class="ov-top"><div><div class="ov-pct">'+pct+'%</div><div class="ov-sub">'+oc+' de '+TOTAL+' láminas</div></div><div class="ov-reps"><b>'+dc+'</b><span class="ov-sub">repetidas</span></div></div>';
+  h+=barHTML(parseFloat(pct),"md");
+  h+='<div class="ov-counts"><span class="c-green">✓ '+oc+'</span><span class="c-red">✗ '+(TOTAL-oc)+'</span><span class="c-amber">⟳ '+dc+'</span></div></div>';
+  h+='<div class="quick-row"><div class="quick-btn" onclick="goSearch()">🔍<small>Buscar</small></div><div class="quick-btn" onclick="goStats()">📊<small>Stats</small></div><div class="quick-btn" onclick="goDupes()">🔄<small>Repetidas</small></div></div>';
+  h+='<div class="tools-row"><button class="tool-btn" onclick="fillAll()">✅ Llenar Todo</button><button class="tool-btn" onclick="emptyAll()">🗑️ Vaciar Todo</button><button class="tool-btn" onclick="toggleBulk(\'add\')">📋 Registrar</button><button class="tool-btn" onclick="toggleBulk(\'rem\')">❌ Quitar</button><button class="tool-btn" onclick="exportList()">📤 Exportar</button><button class="tool-btn" onclick="toggleBulk(\'check\')">🔎 Comparar</button></div>';
+  if(bulkMode){
+    if(bulkMode==="check"){
+      h+='<div class="bulk-panel"><h3>🔎 Comparar Listado</h3>';
+      h+='<textarea id="bulkta" class="bulk-ta" placeholder="Pega códigos separados por comas: COL1, COL2, MEX3...">'+(bulkText||'')+'</textarea>';
+      h+='<div class="bulk-hint">Pega un listado y te dirá cuáles ya tienes y cuáles te faltan</div>';
+      h+='<div class="bulk-btns">';
+      h+='<button class="bulk-go" style="background:#3b82f6;color:#fff" onclick="bulkCheck()">🔎 Comparar</button>';
+      h+='<button class="bulk-go" style="background:#e5e7eb;color:#6b7280" onclick="toggleBulk(null)">Cancelar</button>';
+      h+='</div>';
+      if(checkResult) h+=checkResult;
+      h+='</div>';
+    } else {
+      h+='<div class="bulk-panel"><h3>'+(bulkMode==="add"?"Registrar Láminas":"Quitar Láminas")+'</h3>';
+      h+='<textarea id="bulkta" class="bulk-ta" placeholder="Pega códigos separados por comas: COL1, COL2, MEX3...">'+(bulkText||'')+'</textarea>';
+      h+='<div class="bulk-hint">Ejemplo: COL1, COL2, ARG5, BRA10</div>';
+      h+='<div class="bulk-btns">';
+      if(bulkMode==="add") h+='<button class="bulk-go bulk-add" onclick="bulkAdd()">✅ Registrar</button>';
+      else h+='<button class="bulk-go bulk-rem" onclick="bulkRemove()">❌ Quitar</button>';
+      h+='<button class="bulk-go" style="background:#e5e7eb;color:#6b7280" onclick="toggleBulk(null)">Cancelar</button>';
+      h+='</div>';
+      if(bulkResult) h+='<div class="bulk-result" style="background:'+(bulkResult.ok?"#dcfce7;color:#16a34a":"#fee2e2;color:#dc2626")+'">'+bulkResult.msg+'</div>';
+      h+='</div>';
+    }
+  }
+  if(showExport){
+    var expText=buildExportText();
+    h+='<div class="export-panel"><h3>📤 Láminas Completadas y Repetidas</h3>';
+    h+='<textarea id="exportta" class="export-ta" readonly>'+expText+'</textarea>';
+    h+='<button class="copy-btn" onclick="copyExport()">📋 Copiar al portapapeles</button>';
+    h+='<button class="bulk-go" style="background:#e5e7eb;color:#6b7280;width:100%;margin-top:6px" onclick="showExport=false;render()">Cerrar</button>';
+    h+='</div>';
+  }
+  h+='<div class="sec-title">Secciones Especiales</div>';
+  for(var i=0;i<2;i++){var s=SECS[i],st=secStats(s);
+    h+='<div class="card" onclick="goSec('+i+')"><div class="card-row"><span class="card-name">'+s.flag+' '+s.name+'</span><span class="card-stat">'+st.have+'/'+st.total+'</span></div>'+barHTML(st.pct,"sm")+'</div>';
+  }
+  h+='<div class="sec-title">Selecciones (48)</div>';
+  for(var i=2;i<SECS.length;i++){var s=SECS[i],st=secStats(s),done=st.pct===100;
+    h+='<div class="card'+(done?" card-green":"")+'" onclick="goSec('+i+')"><div class="card-row"><div class="card-left"><span class="card-flag">'+s.flag+'</span><span class="card-name">'+s.name+'</span><span class="card-code">'+s.id+'</span></div><span class="card-stat'+(done?" card-stat-done":"")+'">'+st.have+'/'+st.total+'</span></div>'+barHTML(st.pct,"sm")+'</div>';
+  }
+  h+='<div style="height:24px"></div>';
+  app.innerHTML=h;
+}
+
+function renderSection(){
+  var sec=SECS[selSec],st=secStats(sec);
+  var h='<div class="header"><div class="hdr-row"><button class="back-btn" onclick="goHome()">←</button><div class="hdr-content"><h1>'+sec.flag+' '+sec.name+'</h1><div class="sub">'+st.have+'/'+st.total+' ('+st.pct+'%)</div></div><button class="toggle-view" onclick="toggleAlbum()">'+(albumMode?'📋 Lista':'📖 Álbum')+'</button></div>';
+  if(!albumMode){
+    h+='<div class="chips">';
+    var filters=[["all","Todas"],["missing","Faltan"],["owned","Tengo"],["dupes","Repetidas"]];
+    for(var i=0;i<filters.length;i++){var f=filters[i];h+='<button class="chip '+(filterMode===f[0]?"chip-on":"chip-off")+'" onclick="setFilter(\''+f[0]+'\')">'+f[1]+'</button>';}
+    h+='</div>';
+  }
+  h+='</div>';
+  h+='<div class="'+(albumMode?'hdr-spacer':'hdr-spacer-chips')+'"></div>';
+  h+='<div class="tools-row" style="margin-top:8px"><button class="tool-btn" onclick="fillSection('+selSec+')">✅ Llenar Sección</button><button class="tool-btn" onclick="emptySection('+selSec+')">🗑️ Vaciar Sección</button></div>';
+  h+='<div style="padding-top:8px">';
+  var list=sec.stickers,shown=0;
+  if(albumMode){
+    h+='<div class="album-page"><div class="album-grid">';
+    for(var i=0;i<list.length;i++){
+      var s=list[i],has=owned[s.c],dc=dupes[s.c]||0;
+      var isFoil=s.fo?true:false;
+      var cls='album-card';
+      if(has){cls+=isFoil?' album-card-foil album-card-owned':' album-card-owned';}
+      else{cls+=isFoil?' album-card-foil album-card-miss':' album-card-miss';}
+      h+='<div class="'+cls+'" onclick="toggle(\''+s.c+'\')">';
+      if(has) h+='<span class="album-check">✅</span>';
+      if(has&&dc>0) h+='<span class="album-dupe">'+dc+'</span>';
+      var icon=isFoil?'✦':'⚽';
+      h+='<span class="album-icon'+(has?'':' album-icon-miss')+'">'+icon+'</span>';
+      h+='<span class="album-code '+(has?'album-code-owned':'album-code-miss')+'">'+s.c+'</span>';
+      h+='<span class="album-name '+(has?'album-name-owned':'album-name-miss')+'">'+s.l+'</span>';
+      if(has){
+        h+='<div class="album-dupe-ctrl">';
+        h+='<button class="album-btn album-btn-m" onclick="remDupe(event,\''+s.c+'\')">−</button>';
+        h+='<span class="album-dupe-n">'+dc+'</span>';
+        h+='<button class="album-btn album-btn-p" onclick="addDupe(event,\''+s.c+'\')">+</button>';
+        h+='</div>';
+      }
+      h+='</div>';
+    }
+    h+='</div></div>';
+    shown=list.length;
+  } else {
+    for(var i=0;i<list.length;i++){
+      var s=list[i],has=owned[s.c],dc=dupes[s.c]||0;
+      if(filterMode==="missing"&&has) continue;
+      if(filterMode==="owned"&&!has) continue;
+      if(filterMode==="dupes"&&dc===0) continue;
+      shown++;
+      h+='<div class="sticker '+(has?"sticker-owned":"sticker-miss")+'" onclick="toggle(\''+s.c+'\')"><div class="sticker-row"><div class="sticker-left"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+(s.fo?'<span class="foil">✦FOIL</span>':'')+'</span></div>';
+      if(has) h+='<div class="dupe-ctrl"><button class="btn-r btn-minus" onclick="remDupe(event,\''+s.c+'\')">−</button><span class="dupe-num" style="color:'+(dc>0?"#b45309":"#9ca3af")+'">'+dc+'</span><button class="btn-r btn-plus" onclick="addDupe(event,\''+s.c+'\')">+</button></div>';
+      h+='</div></div>';
+    }
+  }
+  if(shown===0) h+='<p class="empty">No hay láminas con este filtro</p>';
+  h+='<div style="height:24px"></div></div>';
+  app.innerHTML=h;
+}
+
+function renderSearch(){
+  var h=hdrBack('🔍 Buscar Lámina');
+  h+='<div class="pad16"><input class="search-input" type="text" placeholder="Código (COL15) o nombre (James)..." value="'+searchQ.replace(/"/g,'&quot;')+'" oninput="onSearch(this.value)" id="sinput">';
+  if(searchQ.trim()){
+    var q=searchQ.toLowerCase(),found=0;
+    for(var i=0;i<SECS.length&&found<50;i++){var sec=SECS[i];
+      for(var j=0;j<sec.stickers.length&&found<50;j++){var s=sec.stickers[j];
+        if(s.c.toLowerCase().indexOf(q)>=0||s.l.toLowerCase().indexOf(q)>=0){found++;
+          var has=owned[s.c];
+          h+='<div class="card" style="display:flex;align-items:center;justify-content:space-between"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+sec.flag+' '+sec.name+'</div></div><button class="add-btn '+(has?"add-btn-on":"add-btn-off")+'" onclick="toggle(\''+s.c+'\')">'+(has?"✓":"Agregar")+'</button></div>';
+        }
+      }
+    }
+    if(found===0) h+='<p class="empty">No se encontraron láminas</p>';
+  }
+  h+='</div>';
+  app.innerHTML=h;
+  var inp=document.getElementById("sinput");if(inp){inp.focus();inp.setSelectionRange(searchQ.length,searchQ.length);}
+}
+
+function renderDupes(){
+  var dc=dupeCount();
+  var h=hdrBack('🔄 Repetidas',dc+' láminas repetidas');
+  h+='<div class="pad16">';
+  var found=0;
+  for(var i=0;i<SECS.length;i++){var sec=SECS[i];
+    for(var j=0;j<sec.stickers.length;j++){var s=sec.stickers[j],cnt=dupes[s.c]||0;
+      if(cnt>0){found++;
+        h+='<div class="card" style="display:flex;align-items:center;justify-content:space-between"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge badge-amber">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+sec.flag+' '+sec.name+'</div></div><div class="dupe-ctrl"><button class="btn-r btn-minus" onclick="remDupe(event,\''+s.c+'\')">−</button><span class="dupe-num" style="color:#b45309">'+cnt+'</span><button class="btn-r btn-plus" onclick="addDupe(event,\''+s.c+'\')">+</button></div></div>';
+      }
+    }
+  }
+  if(found===0) h+='<p class="empty">No hay láminas repetidas</p>';
+  h+='</div>';
+  app.innerHTML=h;
+}
+
+function renderStats(){
+  var oc=ownedCount(),dc=dupeCount(),miss=TOTAL-oc,pct=(oc/TOTAL*100).toFixed(1);
+  var h=hdrBack('📊 Estadísticas');
+  h+='<div class="pad16"><div class="grid2"><div class="stat-card"><div class="stat-big" style="color:#22c55e">'+oc+'</div><div class="stat-label">Tengo</div></div><div class="stat-card"><div class="stat-big" style="color:#ef4444">'+miss+'</div><div class="stat-label">Faltan</div></div><div class="stat-card"><div class="stat-big" style="color:#f59e0b">'+dc+'</div><div class="stat-label">Repetidas</div></div><div class="stat-card"><div class="stat-big" style="color:#1e3a5f">'+pct+'%</div><div class="stat-label">Progreso</div></div></div>';
+  h+='<div class="sec-title" style="margin-top:20px">Ranking por Sección</div>';
+  var ranks=[];for(var i=0;i<SECS.length;i++){var s=SECS[i],st=secStats(s);ranks.push({name:s.flag+" "+s.name,have:st.have,total:st.total,pct:st.pct});}
+  ranks.sort(function(a,b){return b.pct-a.pct;});
+  h+='<div style="background:#fff;border-radius:16px;padding:12px 14px;border:1px solid #e5e7eb">';
+  for(var i=0;i<ranks.length;i++){var r=ranks[i];
+    h+='<div class="rank-row"><div class="rank-left"><span class="rank-num">'+(i+1)+'</span><span class="rank-name">'+r.name+'</span></div><div class="rank-right"><span class="rank-detail">'+r.have+'/'+r.total+'</span><span class="rank-pct" style="color:'+barColor(r.pct)+'">'+r.pct+'%</span></div></div>';
+  }
+  h+='</div></div>';
+  app.innerHTML=h;
+}
+
+// ─── ACTIONS ────────────────────────────────────────────────
+function toggle(c){if(owned[c]){delete owned[c];delete dupes[c];}else{owned[c]=true;}save();render();}
+function addDupe(e,c){e.stopPropagation();dupes[c]=(dupes[c]||0)+1;save();render();}
+function remDupe(e,c){e.stopPropagation();if(dupes[c]>0)dupes[c]--;if(dupes[c]===0)delete dupes[c];save();render();}
+function goHome(){view="home";filterMode="all";searchQ="";render();}
+function goSec(i){view="section";selSec=i;filterMode="all";render();}
+function goSearch(){view="search";searchQ="";render();}
+function goDupes(){view="dupes";render();}
+function goStats(){view="stats";render();}
+function onSearch(v){searchQ=v;render();}
+function setFilter(f){filterMode=f;render();}
+function toggleAlbum(){albumMode=!albumMode;render();}
+
+// ─── BULK MANAGEMENT ───────────────────────────────────────
+function toggleBulk(mode){
+  if(bulkMode===mode||mode===null){bulkMode=null;bulkText="";bulkResult=null;checkResult="";}
+  else{bulkMode=mode;bulkText="";bulkResult=null;checkResult="";}
+  render();
+}
+function fillAll(){
+  if(!confirm("¿Llenar TODO el álbum? (980 láminas)")) return;
+  for(var i=0;i<SECS.length;i++){
+    for(var j=0;j<SECS[i].stickers.length;j++) owned[SECS[i].stickers[j].c]=true;
+  }
+  save();render();
+}
+function emptyAll(){
+  if(!confirm("¿Vaciar TODO el álbum? Se perderán láminas y repetidas.")) return;
+  owned={};dupes={};save();render();
+}
+function getAllCodes(){
+  var codes={};
+  for(var i=0;i<SECS.length;i++)
+    for(var j=0;j<SECS[i].stickers.length;j++) codes[SECS[i].stickers[j].c.toUpperCase()]=true;
+  return codes;
+}
+function bulkAdd(){
+  var ta=document.getElementById("bulkta");
+  if(!ta) return;
+  var raw=ta.value;
+  var parts=raw.split(/[,;\s\n]+/);
+  var valid=getAllCodes(),added=0,bad=[];
+  for(var i=0;i<parts.length;i++){
+    var c=parts[i].trim().toUpperCase();if(!c) continue;
+    // find original case
+    var found=null;
+    for(var si=0;si<SECS.length&&!found;si++)
+      for(var sj=0;sj<SECS[si].stickers.length;sj++)
+        if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
+    if(found){if(!owned[found]){owned[found]=true;added++;}else{dupes[found]=(dupes[found]||0)+1;added++;}}
+    else bad.push(c);
+  }
+  save();
+  var msg="✅ "+added+" lámina"+(added!==1?"s":"")+" registrada"+(added!==1?"s":"");
+  if(bad.length>0) msg+=" | ⚠️ No encontradas: "+bad.join(", ");
+  bulkResult={ok:bad.length===0,msg:msg};bulkText="";render();
+}
+function bulkRemove(){
+  var ta=document.getElementById("bulkta");
+  if(!ta) return;
+  var raw=ta.value;
+  var parts=raw.split(/[,;\s\n]+/);
+  var removed=0,bad=[];
+  for(var i=0;i<parts.length;i++){
+    var c=parts[i].trim().toUpperCase();if(!c) continue;
+    var found=null;
+    for(var si=0;si<SECS.length&&!found;si++)
+      for(var sj=0;sj<SECS[si].stickers.length;sj++)
+        if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
+    if(found&&owned[found]){delete owned[found];delete dupes[found];removed++;}
+    else if(!found) bad.push(c);
+  }
+  save();
+  var msg="❌ "+removed+" lámina"+(removed!==1?"s":"")+" eliminada"+(removed!==1?"s":"");
+  if(bad.length>0) msg+=" | ⚠️ No encontradas: "+bad.join(", ");
+  bulkResult={ok:bad.length===0,msg:msg};bulkText="";render();
+}
+
+function bulkCheck(){
+  var ta=document.getElementById("bulkta");
+  if(!ta) return;
+  var parts=ta.value.split(/[,;\s\n]+/);
+  var have=[],miss=[],bad=[];
+  for(var i=0;i<parts.length;i++){
+    var c=parts[i].trim().toUpperCase();if(!c) continue;
+    var found=null;
+    for(var si=0;si<SECS.length&&!found;si++)
+      for(var sj=0;sj<SECS[si].stickers.length;sj++)
+        if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
+    if(!found){bad.push(c);}
+    else if(owned[found]){have.push(found);}
+    else{miss.push(found);}
+  }
+  var h='<div style="margin-top:10px">';
+  h+='<div class="bulk-result" style="background:#dcfce7;color:#16a34a">✅ Ya tienes ('+have.length+'): '+(have.length?have.join(", "):"ninguna")+'</div>';
+  h+='<div class="bulk-result" style="background:#fee2e2;color:#dc2626;margin-top:6px">❌ Te faltan ('+miss.length+'): '+(miss.length?miss.join(", "):"ninguna")+'</div>';
+  if(bad.length) h+='<div class="bulk-result" style="background:#fef3c7;color:#92400e;margin-top:6px">⚠️ No encontradas: '+bad.join(", ")+'</div>';
+  h+='</div>';
+  checkResult=h;bulkText=ta.value;render();
+}
+
+function fillSection(idx){
+  var sec=SECS[idx];
+  for(var i=0;i<sec.stickers.length;i++) owned[sec.stickers[i].c]=true;
+  save();render();
+}
+function emptySection(idx){
+  var sec=SECS[idx];
+  for(var i=0;i<sec.stickers.length;i++){delete owned[sec.stickers[i].c];delete dupes[sec.stickers[i].c];}
+  save();render();
+}
+
+// ─── EXPORT ─────────────────────────────────────────────────
+function exportList(){showExport=!showExport;render();}
+function buildExportText(){
+  var codes=[];
+  for(var i=0;i<SECS.length;i++){
+    for(var j=0;j<SECS[i].stickers.length;j++){
+      var s=SECS[i].stickers[j];
+      if(owned[s.c]){
+        codes.push(s.c);
+        var d=dupes[s.c]||0;
+        for(var k=0;k<d;k++) codes.push(s.c);
+      }
+    }
+  }
+  return codes.join(", ");
+}
+function copyExport(){
+  var ta=document.getElementById("exportta");
+  if(!ta) return;
+  ta.select();ta.setSelectionRange(0,99999);
+  try{navigator.clipboard.writeText(ta.value).then(function(){alert("¡Copiado al portapapeles!");});}
+  catch(e){document.execCommand("copy");alert("¡Copiado al portapapeles!");}
+}
+
+// ─── INIT ──────────────────────────────────────────────────
+render();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
+</script>
+</body>
+</html>
