@@ -290,6 +290,10 @@ var TM=[
 ["PAN","Panamá","🇵🇦","Orlando Mosquera","Luis Mejia","Fidel Escobar","Andres Andrade","Michael Amir Murillo","Eric Davis","Jose Cordoba","Cesar Blackman","Cristian Martinez","Aníbal Godoy","Adalberto Carrasquilla","Édgar Bárcenas","Carlos Harvey","Ismael Díaz","Jose Fajardo","Cecilio Waterman","Jose Luiz Rodriguez","Alberto Quintero"]
 ];
 
+// FIFA code to ISO 2-letter code mapping for flags
+var ISO={MEX:"mx",RSA:"za",KOR:"kr",CZE:"cz",CAN:"ca",BIH:"ba",QAT:"qa",SUI:"ch",BRA:"br",MAR:"ma",HAI:"ht",SCO:"gb-sct",USA:"us",PAR:"py",AUS:"au",TUR:"tr",GER:"de",CUW:"cw",CIV:"ci",ECU:"ec",NED:"nl",JPN:"jp",SWE:"se",TUN:"tn",BEL:"be",EGY:"eg",IRN:"ir",NZL:"nz",ESP:"es",CPV:"cv",KSA:"sa",URU:"uy",FRA:"fr",SEN:"sn",IRQ:"iq",NOR:"no",ARG:"ar",ALG:"dz",AUT:"at",JOR:"jo",POR:"pt",COD:"cd",UZB:"uz",COL:"co",ENG:"gb-eng",CRO:"hr",GHA:"gh",PAN:"pa"};
+function flagImg(code,sz){sz=sz||20;var iso=ISO[code]||code.toLowerCase();return '<img src="https://flagcdn.com/'+(sz>16?'w'+sz:sz+'x'+Math.round(sz*0.75))+'/'+iso+'.png" width="'+sz+'" style="vertical-align:middle;border-radius:2px;box-shadow:0 0 1px rgba(0,0,0,.3)" alt="'+code+'" onerror="this.style.display=\'none\'">';}
+
 // Build sections
 function buildTeam(t){
   var id=t[0],nm=t[1],fl=t[2],pl=t.slice(3),s=[];
@@ -297,16 +301,18 @@ function buildTeam(t){
   for(var i=0;i<11;i++) s.push({c:id+(i+2),l:pl[i]});
   s.push({c:id+"13",l:nm+" - Foto Equipo"});
   for(var i=11;i<18;i++) s.push({c:id+(i+3),l:pl[i]});
-  return {id:id,name:nm,flag:fl,stickers:s};
+  return {id:id,name:nm,flag:flagImg(id),stickers:s};
 }
 var COCA=[
-{c:"C1",l:"Lamine Yamal - España"},{c:"C2",l:"Joshua Kimmich - Alemania"},{c:"C3",l:"Harry Kane - Inglaterra"},
-{c:"C4",l:"Santiago Giménez - México"},{c:"C5",l:"Antonee Robinson - USA"},{c:"C6",l:"Jefferson Lerma - Colombia"},
-{c:"C7",l:"Edson Álvarez - México"},{c:"C8",l:"Virgil van Dijk - Países Bajos"},{c:"C9",l:"Alphonso Davies - Canadá"},
-{c:"C10",l:"Weston McKennie - USA"},{c:"C11",l:"Lautaro Martínez - Argentina"},{c:"C12",l:"Gabriel Magalhães - Brasil"}
+{c:"C1",l:"Lamine Yamal",fc:"es"},{c:"C2",l:"Joshua Kimmich",fc:"de"},{c:"C3",l:"Harry Kane",fc:"gb-eng"},
+{c:"C4",l:"Santiago Giménez",fc:"mx"},{c:"C5",l:"Antonee Robinson",fc:"us"},{c:"C6",l:"Jefferson Lerma",fc:"co"},
+{c:"C7",l:"Edson Álvarez",fc:"mx"},{c:"C8",l:"Virgil van Dijk",fc:"nl"},{c:"C9",l:"Alphonso Davies",fc:"ca"},
+{c:"C10",l:"Weston McKennie",fc:"us"},{c:"C11",l:"Lautaro Martínez",fc:"ar"},{c:"C12",l:"Gabriel Magalhães",fc:"br"}
 ];
 var SECS=[{id:"intro",name:"FIFA World Cup 2026",flag:"🏆",stickers:INTRO},{id:"history",name:"Historia Mundiales",flag:"📜",stickers:HIST}];
 for(var i=0;i<TM.length;i++) SECS.push(buildTeam(TM[i]));
+// Add flag images to Coca-Cola sticker labels
+for(var ci=0;ci<COCA.length;ci++){var cc=COCA[ci];if(cc.fc)cc.l='<img src="https://flagcdn.com/w20/'+cc.fc+'.png" width="20" style="vertical-align:middle;border-radius:2px;box-shadow:0 0 1px rgba(0,0,0,.3)"> '+cc.l;}
 SECS.push({id:"coca",name:"Coca-Cola",flag:"🥤",stickers:COCA});
 var TOTAL=0; for(var i=0;i<SECS.length;i++) TOTAL+=SECS[i].stickers.length;
 
@@ -372,7 +378,7 @@ function renderHome(){
   }
   // Check if query matches teams
   var teamHits=[];
-  if(hq){for(var i=0;i<SECS.length;i++){var sec=SECS[i];if(sec.name.toLowerCase().indexOf(hq)>=0||sec.id.toLowerCase().indexOf(hq)>=0||sec.flag.indexOf(hq)>=0) teamHits.push(i);}}
+  if(hq){for(var i=0;i<SECS.length;i++){var sec=SECS[i];if(sec.name.toLowerCase().indexOf(hq)>=0||sec.id.toLowerCase().indexOf(hq)>=0) teamHits.push(i);}}
   // If sticker hits exist and no team hits, show sticker results
   var showStickers=stickerHits.length>0&&(teamHits.length===0||hq.length>=3);
   if(showStickers&&stickerHits.length>0){
@@ -393,7 +399,7 @@ function renderHome(){
     h+='<div class="sec-title" style="display:flex;justify-content:space-between;align-items:center">'+(hq?'Equipos':'Selecciones (48)')+' <button class="sort-btn" onclick="cycleSort()">'+sortLabel+'</button></div>';
   }
   var teams=[];for(var i=2;i<SECS.length;i++){var st=secStats(SECS[i]);teams.push({idx:i,sec:SECS[i],st:st});}
-  if(hq) teams=teams.filter(function(t){return t.sec.name.toLowerCase().indexOf(hq)>=0||t.sec.id.toLowerCase().indexOf(hq)>=0||t.sec.flag.indexOf(hq)>=0;});
+  if(hq) teams=teams.filter(function(t){return t.sec.name.toLowerCase().indexOf(hq)>=0||t.sec.id.toLowerCase().indexOf(hq)>=0;});
   if(sortMode==="progress") teams.sort(function(a,b){return b.st.pct-a.st.pct||a.sec.name.localeCompare(b.sec.name);});
   else if(sortMode==="progress-asc") teams.sort(function(a,b){return a.st.pct-b.st.pct||a.sec.name.localeCompare(b.sec.name);});
   if(!showStickers||teamHits.length>0){
