@@ -299,8 +299,15 @@ function buildTeam(t){
   for(var i=11;i<18;i++) s.push({c:id+(i+3),l:pl[i]});
   return {id:id,name:nm,flag:fl,stickers:s};
 }
+var COCA=[
+{c:"C1",l:"Lamine Yamal - España"},{c:"C2",l:"Joshua Kimmich - Alemania"},{c:"C3",l:"Harry Kane - Inglaterra"},
+{c:"C4",l:"Santiago Giménez - México"},{c:"C5",l:"Antonee Robinson - USA"},{c:"C6",l:"Jefferson Lerma - Colombia"},
+{c:"C7",l:"Edson Álvarez - México"},{c:"C8",l:"Virgil van Dijk - Países Bajos"},{c:"C9",l:"Alphonso Davies - Canadá"},
+{c:"C10",l:"Weston McKennie - USA"},{c:"C11",l:"Lautaro Martínez - Argentina"},{c:"C12",l:"Gabriel Magalhães - Brasil"}
+];
 var SECS=[{id:"intro",name:"FIFA World Cup 2026",flag:"🏆",stickers:INTRO},{id:"history",name:"Historia Mundiales",flag:"📜",stickers:HIST}];
 for(var i=0;i<TM.length;i++) SECS.push(buildTeam(TM[i]));
+SECS.push({id:"coca",name:"Coca-Cola",flag:"🥤",stickers:COCA});
 var TOTAL=0; for(var i=0;i<SECS.length;i++) TOTAL+=SECS[i].stickers.length;
 
 // ─── STATE ───────────────────────────────────────────────────
