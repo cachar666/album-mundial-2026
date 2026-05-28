@@ -560,9 +560,9 @@ function onHomeSearch(v){homeSearchQ=v;render();var inp=document.getElementById(
 function cycleSort(){sortMode=sortMode==="alpha"?"progress":sortMode==="progress"?"progress-asc":"alpha";render();}
 function shareWhatsApp(){
   var ta=document.getElementById("exportta");if(!ta) return;
-  var label=exportMode==="owned"?"TENGO":"ME FALTAN";
-  var count=exportMode==="owned"?ownedCount():(TOTAL-ownedCount());
-  var msg="🏆 Álbum Mundial 2026\n"+label+" ("+count+"):\n"+ta.value;
+  var labels={owned:"TENGO",missing:"ME FALTAN",dupes:"REPETIDAS",onlyowned:"TENGO (sin repetidas)"};
+  var label=labels[exportMode]||"TENGO";
+  var msg="🏆 Álbum Mundial 2026\n"+label+":\n"+ta.value;
   window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
 }
 function setFilter(f){filterMode=f;render();}
@@ -698,6 +698,8 @@ function renderTools(){
     h+='<div class="tools-grid">';
     h+='<div class="tool-card" onclick="showExport=true;exportMode=\'owned\';render()"><div class="tool-card-icon">📤</div><div class="tool-card-title">Tengo</div><div class="tool-card-desc">'+oc+' láminas</div></div>';
     h+='<div class="tool-card" onclick="showExport=true;exportMode=\'missing\';render()"><div class="tool-card-icon">📥</div><div class="tool-card-title">Faltan</div><div class="tool-card-desc">'+miss+' láminas</div></div>';
+    h+='<div class="tool-card" onclick="showExport=true;exportMode=\'dupes\';render()"><div class="tool-card-icon">🔄</div><div class="tool-card-title">Repetidas</div><div class="tool-card-desc">'+dc+' láminas</div></div>';
+    h+='<div class="tool-card" onclick="showExport=true;exportMode=\'onlyowned\';render()"><div class="tool-card-icon">✅</div><div class="tool-card-title">Solo Tengo</div><div class="tool-card-desc">Sin repetidas</div></div>';
     h+='</div>';
   }
   if(bulkMode){
@@ -725,11 +727,17 @@ function renderTools(){
     }
   }
   if(showExport){
-    var expText=exportMode==="owned"?buildExportText():buildMissingText();
+    var expText=exportMode==="owned"?buildExportText():exportMode==="missing"?buildMissingText():exportMode==="dupes"?buildDupesText():buildOwnedOnlyText();
+    var expHint=exportMode==="owned"?"Todas las que tengo (repetidas aparecen N veces)":exportMode==="missing"?"Códigos de láminas que te faltan":exportMode==="dupes"?"Solo láminas repetidas con cantidad":exportMode==="onlyowned"?"Solo las que tengo, sin contar repetidas":"";
     h+='<div class="export-panel">';
-    h+='<div class="exp-tabs"><button class="exp-tab'+(exportMode==="owned"?" exp-tab-on":"")+'" onclick="exportMode=\'owned\';render()">✅ Tengo ('+oc+')</button><button class="exp-tab'+(exportMode==="missing"?" exp-tab-on":"")+'" onclick="exportMode=\'missing\';render()">❌ Faltan ('+miss+')</button></div>';
+    h+='<div class="exp-tabs" style="flex-wrap:wrap">';
+    h+='<button class="exp-tab'+(exportMode==="owned"?" exp-tab-on":"")+'" onclick="exportMode=\'owned\';render()">📤 Tengo ('+oc+')</button>';
+    h+='<button class="exp-tab'+(exportMode==="missing"?" exp-tab-on":"")+'" onclick="exportMode=\'missing\';render()">📥 Faltan ('+miss+')</button>';
+    h+='<button class="exp-tab'+(exportMode==="dupes"?" exp-tab-on":"")+'" onclick="exportMode=\'dupes\';render()">🔄 Repetidas ('+dc+')</button>';
+    h+='<button class="exp-tab'+(exportMode==="onlyowned"?" exp-tab-on":"")+'" onclick="exportMode=\'onlyowned\';render()">✅ Solo Tengo</button>';
+    h+='</div>';
     h+='<textarea id="exportta" class="export-ta" readonly>'+expText+'</textarea>';
-    h+='<div style="font-size:11px;color:#9ca3af;margin-top:4px">'+(exportMode==="owned"?"Repetidas aparecen N veces":"Códigos de láminas que te faltan")+'</div>';
+    h+='<div style="font-size:11px;color:#9ca3af;margin-top:4px">'+expHint+'</div>';
     h+='<button class="copy-btn" onclick="copyExport()">📋 Copiar al portapapeles</button>';
     h+='<button class="wa-btn" onclick="shareWhatsApp()">💬 Compartir por WhatsApp</button>';
     h+='<button class="bulk-go" style="background:#e5e7eb;color:#6b7280;width:100%;margin-top:6px" onclick="showExport=false;render()">Volver</button>';
@@ -790,6 +798,26 @@ function buildMissingText(){
     for(var j=0;j<SECS[i].stickers.length;j++){
       var s=SECS[i].stickers[j];
       if(!owned[s.c]) codes.push(s.c);
+    }
+  }
+  return codes.join(", ");
+}
+function buildDupesText(){
+  var codes=[];
+  for(var i=0;i<SECS.length;i++){
+    for(var j=0;j<SECS[i].stickers.length;j++){
+      var s=SECS[i].stickers[j],d=dupes[s.c]||0;
+      if(d>0) codes.push(s.c+(d>1?" x"+d:""));
+    }
+  }
+  return codes.join(", ");
+}
+function buildOwnedOnlyText(){
+  var codes=[];
+  for(var i=0;i<SECS.length;i++){
+    for(var j=0;j<SECS[i].stickers.length;j++){
+      var s=SECS[i].stickers[j];
+      if(owned[s.c]) codes.push(s.c);
     }
   }
   return codes.join(", ");
