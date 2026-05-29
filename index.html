@@ -383,8 +383,8 @@ function renderHome(){
   var showStickers=stickerHits.length>0&&(teamHits.length===0||hq.length>=3);
   if(showStickers&&stickerHits.length>0){
     h+='<div class="sec-title">Láminas encontradas ('+stickerHits.length+(stickerHits.length>=30?'+':'')+')</div>';
-    for(var i=0;i<stickerHits.length;i++){var hit=stickerHits[i],s=hit.s,has=owned[s.c];
-      h+='<div class="card" style="display:flex;align-items:center;justify-content:space-between"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+hit.sec.flag+' '+hit.sec.name+'</div></div><button class="add-btn '+(has?"add-btn-on":"add-btn-off")+'" onclick="toggle(\''+s.c+'\')">'+(has?"✓":"Agregar")+'</button></div>';
+    for(var i=0;i<stickerHits.length;i++){var hit=stickerHits[i],s=hit.s,has=owned[s.c],dc=dupes[s.c]||0;
+      h+='<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+hit.sec.flag+' '+hit.sec.name+'</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+(has?'<div class="dupe-ctrl"><button class="btn-r btn-minus" onclick="remDupe(event,\''+s.c+'\')">−</button><span class="dupe-num" style="color:'+(dc>0?"#b45309":"#9ca3af")+'">'+dc+'</span><button class="btn-r btn-plus" onclick="addDupe(event,\''+s.c+'\')">+</button></div>':'')+'<button class="add-btn '+(has?"add-btn-on":"add-btn-off")+'" onclick="toggle(\''+s.c+'\')">'+(has?"✓":"Agregar")+'</button></div></div>';
     }
   }
   // Show teams section
@@ -485,8 +485,8 @@ function renderSearch(){
     for(var i=0;i<SECS.length&&found<50;i++){var sec=SECS[i];
       for(var j=0;j<sec.stickers.length&&found<50;j++){var s=sec.stickers[j];
         if(s.c.toLowerCase().indexOf(q)>=0||s.l.toLowerCase().indexOf(q)>=0){found++;
-          var has=owned[s.c];
-          h+='<div class="card" style="display:flex;align-items:center;justify-content:space-between"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+sec.flag+' '+sec.name+'</div></div><button class="add-btn '+(has?"add-btn-on":"add-btn-off")+'" onclick="toggle(\''+s.c+'\')">'+(has?"✓":"Agregar")+'</button></div>';
+          var has=owned[s.c],dc=dupes[s.c]||0;
+          h+='<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+sec.flag+' '+sec.name+'</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+(has?'<div class="dupe-ctrl"><button class="btn-r btn-minus" onclick="remDupe(event,\''+s.c+'\')">−</button><span class="dupe-num" style="color:'+(dc>0?"#b45309":"#9ca3af")+'">'+dc+'</span><button class="btn-r btn-plus" onclick="addDupe(event,\''+s.c+'\')">+</button></div>':'')+'<button class="add-btn '+(has?"add-btn-on":"add-btn-off")+'" onclick="toggle(\''+s.c+'\')">'+(has?"✓":"Agregar")+'</button></div></div>';
         }
       }
     }
