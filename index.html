@@ -56,8 +56,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .chips{display:flex;gap:6px;padding:10px 16px 14px;overflow-x:auto}
 .hdr-spacer-chips{height:calc(120px + env(safe-area-inset-top))}
 .chip{padding:5px 12px;border-radius:20px;font-size:13px;font-weight:600;border:none;cursor:pointer;white-space:nowrap}
-.chip-on{background:#8b6f47;color:#fff}.chip-off{background:#f5efe6;color:#8b6f47;border:1px solid #c4a882}
+.chip-on{background:#4a5575;color:#fff}.chip-off{background:#dde2ed;color:#4a5575;border:1px solid #8892ab}
 .sticker{background:#fff;border-radius:14px;padding:12px;margin:0 16px 8px;border:2px solid #e5e7eb;cursor:pointer;transition:all .15s}
+.sticker-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:0 12px}
+.sc{background:#fff;border-radius:10px;padding:8px;border:1.5px solid #e5e7eb;cursor:pointer;min-height:52px}
+.sc-on{background:#dcfce7;border-color:#86efac}
+.sc-foil{border:1.5px solid #d1d5db;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(0,0,0,.03) 3px,rgba(0,0,0,.03) 6px),repeating-linear-gradient(-45deg,transparent,transparent 3px,rgba(0,0,0,.03) 3px,rgba(0,0,0,.03) 6px),#f9fafb}
+.sc-foil.sc-on{border-color:#86efac;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(0,128,0,.06) 3px,rgba(0,128,0,.06) 6px),repeating-linear-gradient(-45deg,transparent,transparent 3px,rgba(0,128,0,.06) 3px,rgba(0,128,0,.06) 6px),#dcfce7}
 .sticker:active{transform:scale(.98)}
 .sticker-owned{background:#f0fdf4;border-color:#86efac;opacity:1}
 .sticker-miss{opacity:.55}
@@ -161,8 +166,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1e3a5f;color:#fff;padding:12px 24px;border-radius:14px;font-size:14px;font-weight:600;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.3);animation:toastIn .3s ease,toastOut .3s ease 1.5s forwards}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes toastOut{from{opacity:1}to{opacity:0}}
-@keyframes popIn{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
-.pop{animation:popIn .25s ease}
+@keyframes popIn{0%{opacity:1}50%{opacity:.6}100%{opacity:1}}
+.pop{animation:popIn .2s ease}
 .home-search{width:100%;padding:8px 12px;border-radius:10px;border:1px solid #e5e7eb;outline:none;font-size:14px;background:#fff;box-sizing:border-box}
 .home-search:focus{border-color:#3b82f6}
 .sort-btn{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;margin-left:8px;white-space:nowrap}
@@ -189,6 +194,10 @@ body{background:#111827}
 .overview,.card,.sticker,.bulk-panel,.export-panel,.album-page,.stat-card,.modal-box{background:#1f2937;border-color:#374151;color:#e5e7eb}
 .card-green{background:#052e16;border-color:#166534}
 .sticker-owned{background:#052e16;border-color:#166534}
+.sc-on{background:#052e16;border-color:#166534}
+.sc-foil{border:1.5px solid #374151;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(255,255,255,.04) 3px,rgba(255,255,255,.04) 6px),repeating-linear-gradient(-45deg,transparent,transparent 3px,rgba(255,255,255,.04) 3px,rgba(255,255,255,.04) 6px),#111827}
+.sc-foil.sc-on{border-color:#166534;background:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(0,128,0,.08) 3px,rgba(0,128,0,.08) 6px),repeating-linear-gradient(-45deg,transparent,transparent 3px,rgba(0,128,0,.08) 3px,rgba(0,128,0,.08) 6px),#052e16}
+.sc{background:#111827;border-color:#374151}
 .sticker-miss{opacity:.4}
 .album-card-miss{background:linear-gradient(145deg,#374151,#1f2937);border-color:#4b5563}
 .album-card-owned{background:linear-gradient(145deg,#052e16,#064e3b);border-color:#16a34a}
@@ -202,7 +211,7 @@ body{background:#111827}
 .album-name-owned{color:#d1fae5}
 .album-code-owned{color:#86efac}
 .badge-gray{background:#4b5563;color:#9ca3af}
-.chip-off{background:#1f2937;color:#c4a882;border-color:#374151}
+.chip-off{background:#1f2937;color:#9ba3b8;border-color:#374151}
 .ac-default{background:#1f2937;color:#9ca3af;border-color:#374151}
 .tool-btn{background:#1f2937;color:#9ca3af;border-color:#374151}
 .search-input,.sec-search,.home-search,.bulk-ta,.export-ta,.album-select{background:#111827;border-color:#374151;color:#e5e7eb}
@@ -304,15 +313,16 @@ function buildTeam(t){
   var id=t[0],nm=t[1],fl=t[2],pl=t.slice(3),s=[];
   s.push({c:id+"1",l:nm+" - Escudo",fo:1});
   for(var i=0;i<11;i++) s.push({c:id+(i+2),l:pl[i]});
-  s.push({c:id+"13",l:nm+" - Foto Equipo"});
+  s.push({c:id+"13",l:nm+" - Foto Equipo",fo:1});
   for(var i=11;i<18;i++) s.push({c:id+(i+3),l:pl[i]});
   return {id:id,name:nm,flag:flagImg(id),stickers:s};
 }
 var COCA=[
-{c:"C1",l:"Lamine Yamal",fc:"es"},{c:"C2",l:"Joshua Kimmich",fc:"de"},{c:"C3",l:"Harry Kane",fc:"gb-eng"},
-{c:"C4",l:"Santiago Giménez",fc:"mx"},{c:"C5",l:"Antonee Robinson",fc:"us"},{c:"C6",l:"Jefferson Lerma",fc:"co"},
-{c:"C7",l:"Edson Álvarez",fc:"mx"},{c:"C8",l:"Virgil van Dijk",fc:"nl"},{c:"C9",l:"Alphonso Davies",fc:"ca"},
-{c:"C10",l:"Weston McKennie",fc:"us"},{c:"C11",l:"Lautaro Martínez",fc:"ar"},{c:"C12",l:"Gabriel Magalhães",fc:"br"}
+{c:"CC1",l:"Lamine Yamal",fc:"es"},{c:"CC2",l:"Joshua Kimmich",fc:"de"},{c:"CC3",l:"Harry Kane",fc:"gb-eng"},
+{c:"CC4",l:"Santiago Giménez",fc:"mx"},{c:"CC5",l:"Joško Gvardiol",fc:"hr"},{c:"CC6",l:"Federico Valverde",fc:"uy"},
+{c:"CC7",l:"Jefferson Lerma",fc:"co"},{c:"CC8",l:"Enner Valencia",fc:"ec"},{c:"CC9",l:"Gabriel Magalhães",fc:"br"},
+{c:"CC10",l:"Virgil van Dijk",fc:"nl"},{c:"CC11",l:"Alphonso Davies",fc:"ca"},{c:"CC12",l:"Emiliano Martínez",fc:"ar"},
+{c:"CC13",l:"Raúl Jiménez",fc:"mx"},{c:"CC14",l:"Lautaro Martínez",fc:"ar"}
 ];
 var SECS=[{id:"intro",name:"FIFA World Cup 2026",flag:"🏆",stickers:INTRO},{id:"history",name:"Historia Mundiales",flag:"📜",stickers:HIST}];
 for(var i=0;i<TM.length;i++) SECS.push(buildTeam(TM[i]));
@@ -364,6 +374,29 @@ function deleteAlbum(id){
   saveAlbums();render();
 }
 loadAlbums();
+// Migrate old C1-C12 codes to CC1-CC14
+(function(){
+  var migMap={"C1":"CC1","C2":"CC2","C3":"CC3","C4":"CC4","C6":"CC7","C8":"CC10","C9":"CC11","C11":"CC14","C12":"CC9"};
+  var did=false;
+  for(var ai=0;ai<albums.length;ai++){
+    var a=albums[ai],nOwn={},nDup={};
+    for(var k in a.owned){
+      var nk=migMap[k]||k;
+      nOwn[nk]=a.owned[k];
+    }
+    for(var k in a.dupes){
+      var nk=migMap[k]||k;
+      nDup[nk]=(nDup[nk]||0)+a.dupes[k];
+    }
+    if(JSON.stringify(nOwn)!==JSON.stringify(a.owned)){did=true;}
+    a.owned=nOwn;a.dupes=nDup;
+  }
+  if(did){
+    var cur=getAlbum(currentAlbumId);
+    if(cur){owned=cur.owned;dupes=cur.dupes;}
+    saveAlbums();
+  }
+})();
 
 var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false,homeOnlyMissing=false;
 // Today counter
@@ -422,35 +455,34 @@ function hdrBack(title,sub){
 
 function renderHome(){
   var oc=ownedCount(),dc=dupeCount(),pct=(oc/TOTAL*100).toFixed(1);
-  var h='<div class="header"><h1>🏆 Álbum Mundial 2026</h1><div class="sub">Panini Colombia · 980 láminas</div></div>';
-  h+='<div class="hdr-spacer"></div>';
   var todayN=getTodayCount(currentAlbumId);
-  h+='<div class="overview"><div class="ov-top"><div><div class="ov-pct">'+pct+'% <span class="ov-sub">'+oc+'/'+TOTAL+'</span>'+(todayN>0?'<span class="today-badge" onclick="openTodayHist()" style="cursor:pointer">+'+todayN+' hoy</span>':'')+'</div></div><div class="ov-counts"><span class="c-green">✓'+oc+'</span><span class="c-red">✗'+(TOTAL-oc)+'</span><span class="c-amber">⟳'+dc+'</span></div></div>';
+  var h='<div class="header" style="padding-bottom:8px">';
+  h+='<h1>🏆 Álbum Mundial 2026</h1><div class="sub">Panini Colombia · 980 láminas</div>';
+  h+='<div style="background:rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;margin-top:8px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center"><div><span style="font-size:16px;font-weight:700">'+pct+'%</span> <span style="font-size:12px;opacity:.8">'+oc+'/'+TOTAL+'</span>'+(todayN>0?'<span class="today-badge" onclick="openTodayHist()" style="cursor:pointer;margin-left:6px">+'+todayN+' hoy</span>':'')+'</div>';
+  h+='<div style="font-size:11px;opacity:.9"><span>✓'+oc+'</span> <span style="margin-left:6px">✗'+(TOTAL-oc)+'</span> <span style="margin-left:6px">⟳'+dc+'</span></div></div>';
   h+=barHTML(parseFloat(pct),"sm");
   h+='</div>';
-  var curA=getAlbum(currentAlbumId);
-  h+='<div style="padding:0 16px 8px;display:flex;gap:8px;align-items:center">';
-  h+='<div style="flex:1;display:flex;align-items:center;background:linear-gradient(135deg,#f5efe6,#ede4d6);border:1.5px solid #c4a882;border-radius:12px;padding:2px 4px 2px 10px;box-shadow:0 1px 3px rgba(139,111,71,.12)">';
-  h+='<span style="font-size:14px;margin-right:4px">📖</span>';
-  h+='<select class="album-select" onchange="switchAlbum(this.value)" style="flex:1;padding:8px 4px;border:none;font-size:14px;background:transparent;color:#5c4a2d;font-weight:700;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none">';
-  for(var ai=0;ai<albums.length;ai++){var ab=albums[ai];h+='<option value="'+ab.id+'"'+(ab.id===currentAlbumId?' selected':'')+'>'+ab.name+'</option>';}
+  h+='<div style="display:flex;gap:6px;margin-top:8px;align-items:center">';
+  h+='<div style="flex:1;display:flex;align-items:center;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:2px 4px 2px 8px">';
+  h+='<span style="font-size:12px;margin-right:4px">📖</span>';
+  h+='<select class="album-select" onchange="switchAlbum(this.value)" style="flex:1;padding:6px 2px;border:none;font-size:13px;background:transparent;color:#fff;font-weight:700;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none">';
+  for(var ai=0;ai<albums.length;ai++){var ab=albums[ai];h+='<option value="'+ab.id+'" style="color:#333"'+(ab.id===currentAlbumId?' selected':'')+'>'+ab.name+'</option>';}
   h+='</select>';
-  h+='<span style="color:#8b6f47;font-size:12px;margin-right:4px">▼</span>';
+  h+='<span style="color:rgba(255,255,255,.6);font-size:11px;margin-right:2px">▼</span>';
   h+='</div>';
-  h+='<button onclick="promptNewAlbum()" style="flex-shrink:0;width:38px;height:38px;border-radius:12px;border:1.5px solid #c4a882;background:linear-gradient(135deg,#f5efe6,#ede4d6);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#8b6f47;box-shadow:0 1px 3px rgba(139,111,71,.12)">+</button>';
+  h+='<button onclick="promptNewAlbum()" style="flex-shrink:0;width:32px;height:32px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff">+</button>';
   h+='</div>';
-  h+='<div style="background:linear-gradient(135deg,#f5efe6,#ede4d6);border-radius:12px;margin:0 12px 6px;padding:8px;border:1px solid #d9ccb8">';
-  h+='<div style="display:flex;gap:6px;align-items:center">';
+  h+='<div style="display:flex;gap:6px;margin-top:6px;align-items:center">';
   h+='<div style="flex:1;position:relative">';
-  h+='<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>';
-  h+='<input class="home-search" type="text" placeholder="Buscar equipo, jugador o código..." value="'+homeSearchQ.replace(/"/g,'&quot;')+'" oninput="onHomeSearch(this.value)" id="hinput" style="width:100%;margin:0;padding-left:32px;border-color:#c4a882">';
+  h+='<span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;opacity:.6">🔍</span>';
+  h+='<input class="home-search" type="text" placeholder="Buscar..." value="'+homeSearchQ.replace(/"/g,'&quot;')+'" oninput="onHomeSearch(this.value)" id="hinput" style="width:100%;margin:0;padding:6px 8px 6px 28px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;border-radius:8px;font-size:12px;box-sizing:border-box">';
+  h+='</div>';
+  h+='<button onclick="homeOnlyTeams=!homeOnlyTeams;if(homeOnlyTeams)homeOnlyMissing=false;render()" style="flex-shrink:0;padding:6px 8px;border-radius:8px;border:none;background:'+(homeOnlyTeams?'rgba(255,255,255,.9)':'rgba(255,255,255,.2)')+';font-size:10px;font-weight:600;color:'+(homeOnlyTeams?'#1e3a5f':'rgba(255,255,255,.9)')+';cursor:pointer;white-space:nowrap">⚽ Equipos</button>';
+  h+='<button onclick="homeOnlyMissing=!homeOnlyMissing;if(homeOnlyMissing)homeOnlyTeams=false;render()" style="flex-shrink:0;padding:6px 8px;border-radius:8px;border:none;background:'+(homeOnlyMissing?'rgba(255,255,255,.9)':'rgba(255,255,255,.2)')+';font-size:10px;font-weight:600;color:'+(homeOnlyMissing?'#1e3a5f':'rgba(255,255,255,.9)')+';cursor:pointer;white-space:nowrap">❌ Faltantes</button>';
   h+='</div>';
   h+='</div>';
-  h+='<div style="display:flex;gap:6px;margin-top:6px">';
-  h+='<button onclick="homeOnlyTeams=!homeOnlyTeams;if(homeOnlyTeams)homeOnlyMissing=false;render()" style="flex:1;padding:6px 8px;border-radius:8px;border:1.5px solid '+(homeOnlyTeams?'#8b6f47':'#c4a882')+';background:'+(homeOnlyTeams?'#8b6f47':'transparent')+';font-size:11px;font-weight:600;color:'+(homeOnlyTeams?'#fff':'#8b6f47')+';cursor:pointer;white-space:nowrap">🏳️ Equipos</button>';
-  h+='<button onclick="homeOnlyMissing=!homeOnlyMissing;if(homeOnlyMissing)homeOnlyTeams=false;render()" style="flex:1;padding:6px 8px;border-radius:8px;border:1.5px solid '+(homeOnlyMissing?'#9b5e4a':'#c4a882')+';background:'+(homeOnlyMissing?'#9b5e4a':'transparent')+';font-size:11px;font-weight:600;color:'+(homeOnlyMissing?'#fff':'#8b6f47')+';cursor:pointer;white-space:nowrap">❌ Faltantes</button>';
-  h+='</div>';
-  h+='</div>';
+  h+='<div class="hdr-spacer" style="height:calc(200px + env(safe-area-inset-top))"></div>';
   var hq=homeSearchQ.toLowerCase();
   // Check if query matches any stickers (player/code)
   var stickerHits=[];
@@ -510,10 +542,10 @@ function renderSection(){
   }
   h+='</div>';
   h+='<div class="'+(albumMode?'hdr-spacer':'hdr-spacer-chips')+'"></div>';
-  h+='<div style="margin:6px 12px 0;background:linear-gradient(135deg,#f5efe6,#ede4d6);border-radius:12px;padding:8px;border:1px solid #d9ccb8;display:flex;gap:6px">';
+  h+='<div style="margin:6px 12px 0;background:linear-gradient(135deg,#eef0f5,#dde2ed);border-radius:12px;padding:8px;border:1px solid #8892ab;display:flex;gap:6px">';
   h+='<div style="position:relative;flex:1">';
   h+='<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>';
-  h+='<input class="sec-search" type="text" placeholder="Filtrar por nombre o código..." value="'+secSearchQ.replace(/"/g,'&quot;')+'" oninput="onSecSearch(this.value)" id="secinput" style="padding-left:32px;border-color:#c4a882">';
+  h+='<input class="sec-search" type="text" placeholder="Filtrar por nombre o código..." value="'+secSearchQ.replace(/"/g,'&quot;')+'" oninput="onSecSearch(this.value)" id="secinput" style="padding-left:32px;border-color:#8892ab">';
   h+='</div>';
   h+='</div>';
   h+='<div style="padding-top:4px">';
@@ -546,6 +578,7 @@ function renderSection(){
     h+='</div></div>';
     shown=list.length;
   } else {
+    h+='<div class="sticker-grid">';
     for(var i=0;i<list.length;i++){
       var s=list[i],has=owned[s.c],dc=dupes[s.c]||0;
       if(sq&&s.c.toLowerCase().indexOf(sq)<0&&s.l.toLowerCase().indexOf(sq)<0) continue;
@@ -553,10 +586,20 @@ function renderSection(){
       if(filterMode==="owned"&&!has) continue;
       if(filterMode==="dupes"&&dc===0) continue;
       shown++;
-      h+='<div class="sticker '+(has?"sticker-owned":"sticker-miss")+'" data-code="'+s.c+'" onclick="toggle(\''+s.c+'\')"><div class="sticker-row"><div class="sticker-left"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+(s.fo?'<span class="foil">✦FOIL</span>':'')+'</span></div>';
-      if(has) h+='<div class="dupe-ctrl"><button class="btn-r btn-minus" onclick="remDupe(event,\''+s.c+'\')">−</button><span class="dupe-num" style="color:'+(dc>0?"#b45309":"#9ca3af")+'">'+dc+'</span><button class="btn-r btn-plus" onclick="addDupe(event,\''+s.c+'\')">+</button></div>';
+      var sn=s.l.replace(sec.name+' - ','');
+      var foilCls=s.fo?' sc-foil':'';
+      h+='<div class="sc '+(has?'sc-on':'')+foilCls+'" data-code="'+s.c+'" onclick="toggle(\''+s.c+'\')">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;height:22px">';
+      h+='<span style="font-size:11px;font-weight:700;color:'+(has?'#166534':'#9ca3af')+'">'+s.c+(s.fo?' \u2726':'')+'</span>';
+      h+='<div style="display:flex;align-items:center;gap:4px;visibility:'+(has?'visible':'hidden')+'">';
+      h+='<button style="width:22px;height:22px;border-radius:50%;border:none;background:#fee2e2;color:#dc2626;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="remDupe(event,\''+s.c+'\')">\u2212</button>';
+      h+='<span style="font-size:10px;font-weight:600;color:'+(dc>0?'#b45309':'#22c55e')+';min-width:12px;text-align:center">'+(has?(dc>0?dc:'\u2713'):'')+'</span>';
+      h+='<button style="width:22px;height:22px;border-radius:50%;border:none;background:#fef3c7;color:#b45309;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="addDupe(event,\''+s.c+'\')">+</button>';
       h+='</div></div>';
+      h+='<div style="font-size:10px;margin-top:2px;color:'+(has?'#15803d':'#9ca3af')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sn+'</div>';
+      h+='</div>';
     }
+    h+='</div>';
   }
   if(shown===0) h+='<p class="empty">No hay láminas con este filtro</p>';
   h+='<div style="height:24px"></div></div>';
@@ -622,14 +665,14 @@ function renderStats(){
 
 // ─── ACTIONS ────────────────────────────────────────────────
 function toggle(c){
-  if(owned[c]){dupes[c]=(dupes[c]||0)+1;save();render();try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}return;}
+  if(owned[c]){dupes[c]=(dupes[c]||0)+1;save();render();return;}
   owned[c]=true;addToHistory(currentAlbumId,c);
   save();render();
-  try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+  
   setTimeout(function(){var el=document.querySelector('[data-code="'+c+'"]');if(el){el.classList.add('pop');setTimeout(function(){el.classList.remove('pop');},300);}},10);
 }
 function addDupe(e,c){e.stopPropagation();dupes[c]=(dupes[c]||0)+1;save();render();}
-function remDupe(e,c){e.stopPropagation();if(dupes[c]>0){dupes[c]--;if(dupes[c]===0)delete dupes[c];}else if(owned[c]){delete owned[c];delete dupes[c];}save();render();}
+function remDupe(e,c){e.stopPropagation();if(dupes[c]>0){dupes[c]--;if(dupes[c]===0)delete dupes[c];save();render();}else if(owned[c]){showModal('¿Eliminar <strong>'+c+'</strong> del álbum?<br>No tiene repetidas, se quitará por completo.','Eliminar','modal-danger',function(){delete owned[c];delete dupes[c];save();render();});}}
 function switchTab(tab){activeTab=tab;bulkMode=null;bulkText="";bulkResult=null;checkResult="";showExport=false;
   if(tab==="home"){view="home";filterMode="all";searchQ="";homeSearchQ="";}
 
@@ -701,18 +744,23 @@ function bulkAdd(){
   if(!ta) return;
   var raw=ta.value;
   var parts=raw.split(/[,;\s\n]+/);
-  var valid=getAllCodes(),added=0,bad=[];
+  var valid=getAllCodes(),added=0,newCount=0,dupeCount2=0,bad=[];
   for(var i=0;i<parts.length;i++){
     var c=parts[i].trim().toUpperCase();if(!c) continue;
     var found=null;
     for(var si=0;si<SECS.length&&!found;si++)
       for(var sj=0;sj<SECS[si].stickers.length;sj++)
         if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
-    if(found){if(!owned[found]){owned[found]=true;addToHistory(currentAlbumId,found);added++;}else{dupes[found]=(dupes[found]||0)+1;added++;}}
+    if(found){
+      if(!owned[found]){owned[found]=true;addToHistory(currentAlbumId,found);newCount++;added++;}
+      else{dupes[found]=(dupes[found]||0)+1;dupeCount2++;added++;}
+    }
     else bad.push(c);
   }
   save();
   var msg="✅ "+added+" lámina"+(added!==1?"s":"")+" registrada"+(added!==1?"s":"");
+  if(newCount>0) msg+=" ("+newCount+" nueva"+(newCount!==1?"s":"")+")";
+  if(dupeCount2>0) msg+=" ("+dupeCount2+" al inventario)";
   if(bad.length>0) msg+=" | ⚠️ No encontradas: "+bad.join(", ");
   bulkResult={ok:bad.length===0,msg:msg};bulkText="";render();
 }
@@ -721,18 +769,32 @@ function bulkRemove(){
   if(!ta) return;
   var raw=ta.value;
   var parts=raw.split(/[,;\s\n]+/);
-  var removed=0,bad=[];
+  var removed=0,bad=[],mainWarn=[];
   for(var i=0;i<parts.length;i++){
     var c=parts[i].trim().toUpperCase();if(!c) continue;
     var found=null;
     for(var si=0;si<SECS.length&&!found;si++)
       for(var sj=0;sj<SECS[si].stickers.length;sj++)
         if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
-    if(found&&owned[found]){delete owned[found];delete dupes[found];removed++;}
+    if(found&&owned[found]){
+      if(dupes[found]&&dupes[found]>0){dupes[found]--;if(dupes[found]===0)delete dupes[found];removed++;}
+      else{mainWarn.push(found);}
+    }
     else if(!found) bad.push(c);
   }
+  if(mainWarn.length>0){
+    showModal('Las siguientes láminas no tienen repetidas y se eliminarán del álbum:<br><strong>'+mainWarn.join(', ')+'</strong><br>¿Continuar?','Eliminar','modal-danger',function(){
+      for(var i=0;i<mainWarn.length;i++){delete owned[mainWarn[i]];delete dupes[mainWarn[i]];removed++;}
+      save();
+      var msg="❌ "+removed+" lámina"+(removed!==1?"s":"")+" quitada"+(removed!==1?"s":"");
+      if(bad.length>0) msg+=" | ⚠️ No encontradas: "+bad.join(", ");
+      bulkResult={ok:bad.length===0,msg:msg};bulkText="";render();
+    });
+    if(removed>0){save();var msg="❌ "+removed+" repetida"+(removed!==1?"s":"")+" quitada"+(removed!==1?"s":"");bulkResult={ok:true,msg:msg};render();}
+    return;
+  }
   save();
-  var msg="❌ "+removed+" lámina"+(removed!==1?"s":"")+" eliminada"+(removed!==1?"s":"");
+  var msg="❌ "+removed+" repetida"+(removed!==1?"s":"")+" quitada"+(removed!==1?"s":"");
   if(bad.length>0) msg+=" | ⚠️ No encontradas: "+bad.join(", ");
   bulkResult={ok:bad.length===0,msg:msg};bulkText="";render();
 }
