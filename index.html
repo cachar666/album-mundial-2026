@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1e3a5f">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Album Mundial 2026</title>
 <style>
@@ -62,8 +63,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .badge-green{background:#22c55e;color:#fff}.badge-gray{background:#d1d5db;color:#6b7280}.badge-amber{background:#f59e0b;color:#fff}
 .sticker-name{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .foil{color:#eab308;font-size:10px;margin-left:4px}
-.dupe-ctrl{display:flex;align-items:center;gap:4px;flex-shrink:0;margin-left:8px}
-.btn-r{width:30px;height:30px;border-radius:50%;border:none;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dupe-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px}
+.btn-r{width:40px;height:40px;border-radius:50%;border:none;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .btn-r:active{opacity:.7}
 .btn-minus{background:#fee2e2;color:#dc2626}.btn-plus{background:#fef3c7;color:#b45309}
 .dupe-num{font-size:13px;font-weight:700;width:24px;text-align:center}
@@ -104,8 +105,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .album-name-owned{color:#1e3a5f;font-weight:600}
 .album-dupe{position:absolute;top:4px;right:4px;background:#f59e0b;color:#fff;font-size:10px;font-weight:800;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .album-check{position:absolute;top:4px;left:4px;font-size:14px}
-.album-dupe-ctrl{display:flex;align-items:center;gap:2px;margin-top:4px}
-.album-btn{width:22px;height:22px;border-radius:50%;border:none;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.album-dupe-ctrl{display:flex;align-items:center;gap:6px;margin-top:4px}
+.album-btn{width:34px;height:34px;border-radius:50%;border:none;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .album-btn:active{opacity:.7}
 .album-btn-m{background:#fee2e2;color:#dc2626}
 .album-btn-p{background:#fef3c7;color:#b45309}
@@ -158,7 +159,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 @keyframes toastOut{from{opacity:1}to{opacity:0}}
 @keyframes popIn{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 .pop{animation:popIn .25s ease}
-.home-search{width:calc(100% - 32px);margin:0 16px;padding:8px 12px;border-radius:10px;border:1px solid #e5e7eb;outline:none;font-size:14px;background:#fff}
+.home-search{width:100%;padding:8px 12px;border-radius:10px;border:1px solid #e5e7eb;outline:none;font-size:14px;background:#fff;box-sizing:border-box}
 .home-search:focus{border-color:#3b82f6}
 .sort-btn{background:none;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;margin-left:8px;white-space:nowrap}
 .sort-btn:active{background:rgba(255,255,255,.2)}
@@ -200,7 +201,7 @@ body{background:#111827}
 .chip-off{background:#1f2937;color:#9ca3af;border-color:#374151}
 .ac-default{background:#1f2937;color:#9ca3af;border-color:#374151}
 .tool-btn{background:#1f2937;color:#9ca3af;border-color:#374151}
-.search-input,.sec-search,.home-search,.bulk-ta,.export-ta{background:#111827;border-color:#374151;color:#e5e7eb}
+.search-input,.sec-search,.home-search,.bulk-ta,.export-ta,.album-select{background:#111827;border-color:#374151;color:#e5e7eb}
 .bar{background:#374151}
 .toast{background:#e5e7eb;color:#111827}
 .quick-btn{background:#1f2937;border-color:#374151}
@@ -318,10 +319,49 @@ var TOTAL=0; for(var i=0;i<SECS.length;i++) TOTAL+=SECS[i].stickers.length;
 
 // ─── STATE ───────────────────────────────────────────────────
 var owned={},dupes={};
-try{var d=JSON.parse(localStorage.getItem("panini2026"));if(d){owned=d.owned||{};dupes=d.dupes||{};}}catch(e){}
-function save(){try{localStorage.setItem("panini2026",JSON.stringify({owned:owned,dupes:dupes}));}catch(e){}}
+var albums=[],currentAlbumId=null;
+function loadAlbums(){
+  try{var d=JSON.parse(localStorage.getItem("panini2026_albums"));if(d&&d.length)albums=d;else albums=[];}catch(e){albums=[];}
+  try{currentAlbumId=localStorage.getItem("panini2026_current")||null;}catch(e){}
+  if(albums.length===0){
+    var migOwned={},migDupes={};
+    try{var old=JSON.parse(localStorage.getItem("panini2026"));if(old){migOwned=old.owned||{};migDupes=old.dupes||{};}}catch(e){}
+    albums=[{id:"main",name:"Mi Álbum",owned:migOwned,dupes:migDupes}];
+    currentAlbumId="main";
+    saveAlbums();
+  }
+  if(!currentAlbumId) currentAlbumId=albums[0].id;
+  var a=getAlbum(currentAlbumId);
+  if(!a){currentAlbumId=albums[0].id;a=albums[0];}
+  owned=a.owned;dupes=a.dupes;
+}
+function getAlbum(id){for(var i=0;i<albums.length;i++)if(albums[i].id===id)return albums[i];return null;}
+function saveAlbums(){
+  var a=getAlbum(currentAlbumId);if(a){a.owned=owned;a.dupes=dupes;}
+  try{localStorage.setItem("panini2026_albums",JSON.stringify(albums));localStorage.setItem("panini2026_current",currentAlbumId);}catch(e){}
+}
+function save(){saveAlbums();}
+function switchAlbum(id){
+  var a=getAlbum(currentAlbumId);if(a){a.owned=owned;a.dupes=dupes;}
+  currentAlbumId=id;var b=getAlbum(id);
+  if(b){owned=b.owned;dupes=b.dupes;}
+  saveAlbums();render();
+}
+function createAlbum(name){
+  var id="alb_"+Date.now();
+  albums.push({id:id,name:name,owned:{},dupes:{}});
+  saveAlbums();return id;
+}
+function renameAlbum(id,name){var a=getAlbum(id);if(a)a.name=name;saveAlbums();}
+function deleteAlbum(id){
+  if(albums.length<=1){showToast("Debe haber al menos un álbum");return;}
+  albums=albums.filter(function(a){return a.id!==id;});
+  if(currentAlbumId===id){currentAlbumId=albums[0].id;var b=albums[0];owned=b.owned;dupes=b.dupes;}
+  saveAlbums();render();
+}
+loadAlbums();
 
-var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home";
+var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false;
 // Today counter
 var todayKey="panini2026_today",todayData={};
 try{var td=JSON.parse(localStorage.getItem(todayKey));if(td&&td.date===new Date().toDateString()){todayData=td;}else{todayData={date:new Date().toDateString(),count:0};}}catch(e){todayData={date:new Date().toDateString(),count:0};}
@@ -335,7 +375,8 @@ function barColor(v){return v<30?"#ef4444":v<70?"#f59e0b":"#22c55e";}
 function barHTML(v,size){return '<div class="bar bar-'+size+'" style="background:#e5e7eb"><div class="bar-fill" style="width:'+Math.min(v,100)+'%;background:'+barColor(v)+'"></div></div>';}
 
 function bottomNav(){
-  var tabs=[["home","🏠","Álbum"],["tools","🔄","Cambiar"],["stats","📊","Stats"],["more","⚙️","Más"]];
+  var an=getAlbum(currentAlbumId);var aname=an?an.name:"Álbum";
+  var tabs=[["home","🏠",aname],["swap","🔄","Cambios"],["albums","📗","Álbumes"]];
   var h='<nav class="bottom-nav">';
   for(var i=0;i<tabs.length;i++){var t=tabs[i],on=activeTab===t[0];
     h+='<button class="nav-tab '+(on?"nav-tab-on":"nav-tab-off")+'" onclick="switchTab(\''+t[0]+'\')">';
@@ -348,9 +389,10 @@ function render(){
   else if(view==="section") renderSection();
   else if(view==="search") renderSearch();
   else if(view==="dupes") renderDupes();
-  else if(view==="stats") renderStats();
+
   else if(view==="tools") renderTools();
-  else if(view==="more") renderMore();
+  else if(view==="swap") renderSwap();
+  else if(view==="albums") renderAlbums();
 }
 
 function hdrBack(title,sub){
@@ -365,7 +407,24 @@ function renderHome(){
   h+='<div class="overview"><div class="ov-top"><div><div class="ov-pct">'+pct+'% <span class="ov-sub">'+oc+'/'+TOTAL+'</span>'+(todayN>0?'<span class="today-badge">+'+todayN+' hoy</span>':'')+'</div></div><div class="ov-counts"><span class="c-green">✓'+oc+'</span><span class="c-red">✗'+(TOTAL-oc)+'</span><span class="c-amber">⟳'+dc+'</span></div></div>';
   h+=barHTML(parseFloat(pct),"sm");
   h+='</div>';
-  h+='<input class="home-search" type="text" placeholder="🔍 Buscar equipo, jugador o código..." value="'+homeSearchQ.replace(/"/g,'&quot;')+'" oninput="onHomeSearch(this.value)" id="hinput">';
+  var curA=getAlbum(currentAlbumId);
+  h+='<div style="padding:0 16px 8px;display:flex;gap:8px;align-items:center">';
+  h+='<div style="flex:1;display:flex;align-items:center;background:linear-gradient(135deg,#f5efe6,#ede4d6);border:1.5px solid #c4a882;border-radius:12px;padding:2px 4px 2px 10px;box-shadow:0 1px 3px rgba(139,111,71,.12)">';
+  h+='<span style="font-size:14px;margin-right:4px">📖</span>';
+  h+='<select class="album-select" onchange="switchAlbum(this.value)" style="flex:1;padding:8px 4px;border:none;font-size:14px;background:transparent;color:#5c4a2d;font-weight:700;cursor:pointer;outline:none;-webkit-appearance:none;appearance:none">';
+  for(var ai=0;ai<albums.length;ai++){var ab=albums[ai];h+='<option value="'+ab.id+'"'+(ab.id===currentAlbumId?' selected':'')+'>'+ab.name+'</option>';}
+  h+='</select>';
+  h+='<span style="color:#8b6f47;font-size:12px;margin-right:4px">▼</span>';
+  h+='</div>';
+  h+='<button onclick="promptNewAlbum()" style="flex-shrink:0;width:38px;height:38px;border-radius:12px;border:1.5px solid #c4a882;background:linear-gradient(135deg,#f5efe6,#ede4d6);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#8b6f47;box-shadow:0 1px 3px rgba(139,111,71,.12)">+</button>';
+  h+='</div>';
+  h+='<div style="display:flex;gap:8px;align-items:center;padding:0 16px;margin-bottom:4px">';
+  h+='<div style="flex:1;position:relative">';
+  h+='<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>';
+  h+='<input class="home-search" type="text" placeholder="Buscar equipo, jugador o código..." value="'+homeSearchQ.replace(/"/g,'&quot;')+'" oninput="onHomeSearch(this.value)" id="hinput" style="width:100%;margin:0;padding-left:32px">';
+  h+='</div>';
+  h+='<button onclick="homeOnlyTeams=!homeOnlyTeams;render()" style="flex-shrink:0;padding:8px 10px;border-radius:10px;border:1.5px solid '+(homeOnlyTeams?'#8b6f47':'#e5e7eb')+';background:'+(homeOnlyTeams?'#f5efe6':'#fff')+';font-size:11px;font-weight:600;color:'+(homeOnlyTeams?'#5c4a2d':'#9a918a')+';cursor:pointer;white-space:nowrap">🏳️ Equipos</button>';
+  h+='</div>';
   var hq=homeSearchQ.toLowerCase();
   // Check if query matches any stickers (player/code)
   var stickerHits=[];
@@ -380,18 +439,18 @@ function renderHome(){
   var teamHits=[];
   if(hq){for(var i=0;i<SECS.length;i++){var sec=SECS[i];if(sec.name.toLowerCase().indexOf(hq)>=0||sec.id.toLowerCase().indexOf(hq)>=0) teamHits.push(i);}}
   // If sticker hits exist and no team hits, show sticker results
-  var showStickers=stickerHits.length>0&&(teamHits.length===0||hq.length>=3);
+  var showStickers=!homeOnlyTeams&&stickerHits.length>0&&(teamHits.length===0||hq.length>=3);
   if(showStickers&&stickerHits.length>0){
     h+='<div class="sec-title">Láminas encontradas ('+stickerHits.length+(stickerHits.length>=30?'+':'')+')</div>';
     for(var i=0;i<stickerHits.length;i++){var hit=stickerHits[i],s=hit.s,has=owned[s.c],dc=dupes[s.c]||0;
-      h+='<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+hit.sec.flag+' '+hit.sec.name+'</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+(has?'<div class="dupe-ctrl"><button class="btn-r btn-minus" onclick="remDupe(event,\''+s.c+'\')">−</button><span class="dupe-num" style="color:'+(dc>0?"#b45309":"#9ca3af")+'">'+dc+'</span><button class="btn-r btn-plus" onclick="addDupe(event,\''+s.c+'\')">+</button></div>':'')+'<button class="add-btn '+(has?"add-btn-on":"add-btn-off")+'" onclick="toggle(\''+s.c+'\')">'+(has?"✓":"Agregar")+'</button></div></div>';
+      h+='<div class="card" onclick="toggle(\''+s.c+'\')" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+hit.sec.flag+' '+hit.sec.name+'</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+(has?'<div class="dupe-ctrl"><button class="btn-r btn-minus" onclick="remDupe(event,\''+s.c+'\')">−</button><span class="dupe-num" style="color:'+(dc>0?"#b45309":"#9ca3af")+'">'+dc+'</span><button class="btn-r btn-plus" onclick="addDupe(event,\''+s.c+'\')">+</button></div>':'<span class="add-btn add-btn-off">Agregar</span>')+'</div></div>';
     }
   }
   // Show teams section
   if(!hq){
     h+='<div class="sec-title">Secciones Especiales</div>';
     for(var i=0;i<2;i++){var s=SECS[i],st=secStats(s);
-      h+='<div class="card" onclick="goSec('+i+')"><div class="card-row"><span class="card-name">'+s.flag+' '+s.name+'</span><span class="card-stat">'+st.have+'/'+st.total+'</span></div>'+barHTML(st.pct,"sm")+'</div>';
+      h+='<div class="card" onclick="goSec('+i+')"><div class="card-row"><span class="card-name">'+s.flag+' '+s.name+'</span><span class="card-stat">'+st.have+'/'+st.total+' <span style="font-size:11px;color:#c4b8a8;font-weight:400">'+st.pct+'%</span></span></div>'+barHTML(st.pct,"sm")+'</div>';
     }
   }
   var sortLabel=sortMode==="alpha"?"A-Z":sortMode==="progress"?"% ↑":"% ↓";
@@ -404,7 +463,7 @@ function renderHome(){
   else if(sortMode==="progress-asc") teams.sort(function(a,b){return a.st.pct-b.st.pct||a.sec.name.localeCompare(b.sec.name);});
   if(!showStickers||teamHits.length>0){
     for(var i=0;i<teams.length;i++){var t=teams[i],s=t.sec,st=t.st,done=st.pct===100;
-      h+='<div class="card'+(done?" card-green":"")+'" onclick="goSec('+t.idx+')"><div class="card-row"><div class="card-left"><span class="card-flag">'+s.flag+'</span><span class="card-name">'+s.name+'</span><span class="card-code">'+s.id+'</span></div><span class="card-stat'+(done?" card-stat-done":"")+'">'+st.have+'/'+st.total+'</span></div>'+barHTML(st.pct,"sm")+'</div>';
+      h+='<div class="card'+(done?" card-green":"")+'" onclick="goSec('+t.idx+')"><div class="card-row"><div class="card-left"><span class="card-flag">'+s.flag+'</span><span class="card-name">'+s.name+'</span><span class="card-code">'+s.id+'</span></div><span class="card-stat'+(done?" card-stat-done":"")+'">'+st.have+'/'+st.total+' <span style="font-size:11px;color:'+(done?'#4a7a3a':'#c4b8a8')+';font-weight:400">'+st.pct+'%</span></span></div>'+barHTML(st.pct,"sm")+'</div>';
     }
   }
   if(hq&&stickerHits.length===0&&teams.length===0) h+='<p class="empty">No se encontraron resultados</p>';
@@ -425,9 +484,10 @@ function renderSection(){
   h+='</div>';
   h+='<div class="'+(albumMode?'hdr-spacer':'hdr-spacer-chips')+'"></div>';
   h+='<div style="padding:6px 16px 0;display:flex;gap:6px">';
-  h+='<input class="sec-search" type="text" placeholder="Filtrar por nombre, código o #..." value="'+secSearchQ.replace(/"/g,'&quot;')+'" oninput="onSecSearch(this.value)" id="secinput">';
-  h+='<button class="tool-btn" style="flex-shrink:0;padding:8px 10px" onclick="fillSection('+selSec+')">✅</button>';
-  h+='<button class="tool-btn" style="flex-shrink:0;padding:8px 10px" onclick="emptySection('+selSec+')">🗑️</button>';
+  h+='<div style="position:relative;flex:1">';
+  h+='<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>';
+  h+='<input class="sec-search" type="text" placeholder="Filtrar por nombre o código..." value="'+secSearchQ.replace(/"/g,'&quot;')+'" oninput="onSecSearch(this.value)" id="secinput" style="padding-left:32px">';
+  h+='</div>';
   h+='</div>';
   h+='<div style="padding-top:4px">';
   var list=sec.stickers,shown=0,sq=secSearchQ.toLowerCase();
@@ -486,7 +546,7 @@ function renderSearch(){
       for(var j=0;j<sec.stickers.length&&found<50;j++){var s=sec.stickers[j];
         if(s.c.toLowerCase().indexOf(q)>=0||s.l.toLowerCase().indexOf(q)>=0){found++;
           var has=owned[s.c],dc=dupes[s.c]||0;
-          h+='<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+sec.flag+' '+sec.name+'</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+(has?'<div class="dupe-ctrl"><button class="btn-r btn-minus" onclick="remDupe(event,\''+s.c+'\')">−</button><span class="dupe-num" style="color:'+(dc>0?"#b45309":"#9ca3af")+'">'+dc+'</span><button class="btn-r btn-plus" onclick="addDupe(event,\''+s.c+'\')">+</button></div>':'')+'<button class="add-btn '+(has?"add-btn-on":"add-btn-off")+'" onclick="toggle(\''+s.c+'\')">'+(has?"✓":"Agregar")+'</button></div></div>';
+          h+='<div class="card" onclick="toggle(\''+s.c+'\')" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+sec.flag+' '+sec.name+'</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+(has?'<div class="dupe-ctrl"><button class="btn-r btn-minus" onclick="remDupe(event,\''+s.c+'\')">−</button><span class="dupe-num" style="color:'+(dc>0?"#b45309":"#9ca3af")+'">'+dc+'</span><button class="btn-r btn-plus" onclick="addDupe(event,\''+s.c+'\')">+</button></div>':'<span class="add-btn add-btn-off">Agregar</span>')+'</div></div>';
         }
       }
     }
@@ -500,7 +560,8 @@ function renderSearch(){
 
 function renderDupes(){
   var dc=dupeCount();
-  var h=hdrBack('🔄 Repetidas',dc+' láminas repetidas');
+  var curName=getAlbum(currentAlbumId)?getAlbum(currentAlbumId).name:'Álbum';
+  var h='<div class="header"><div class="hdr-row"><button class="back-btn" onclick="goAlbums()">←</button><div class="hdr-content"><h1>🔄 Repetidas</h1><div class="sub">'+curName+' · '+dc+' láminas</div></div></div></div><div class="hdr-spacer"></div>';
   h+='<div class="pad16">';
   var found=0;
   for(var i=0;i<SECS.length;i++){var sec=SECS[i];
@@ -534,26 +595,28 @@ function renderStats(){
 
 // ─── ACTIONS ────────────────────────────────────────────────
 function toggle(c){
-  if(owned[c]){delete owned[c];delete dupes[c];}
-  else{owned[c]=true;if(todayData.date!==new Date().toDateString()){todayData={date:new Date().toDateString(),count:0};}todayData.count++;saveToday();}
+  if(owned[c]){dupes[c]=(dupes[c]||0)+1;save();render();try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}return;}
+  owned[c]=true;if(todayData.date!==new Date().toDateString()){todayData={date:new Date().toDateString(),count:0};}todayData.count++;saveToday();
   save();render();
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
   setTimeout(function(){var el=document.querySelector('[data-code="'+c+'"]');if(el){el.classList.add('pop');setTimeout(function(){el.classList.remove('pop');},300);}},10);
 }
 function addDupe(e,c){e.stopPropagation();dupes[c]=(dupes[c]||0)+1;save();render();}
-function remDupe(e,c){e.stopPropagation();if(dupes[c]>0)dupes[c]--;if(dupes[c]===0)delete dupes[c];save();render();}
+function remDupe(e,c){e.stopPropagation();if(dupes[c]>0){dupes[c]--;if(dupes[c]===0)delete dupes[c];}else if(owned[c]){delete owned[c];delete dupes[c];}save();render();}
 function switchTab(tab){activeTab=tab;bulkMode=null;bulkText="";bulkResult=null;checkResult="";showExport=false;
   if(tab==="home"){view="home";filterMode="all";searchQ="";homeSearchQ="";}
-  else if(tab==="tools"){view="tools";}
-  else if(tab==="stats"){view="stats";}
-  else if(tab==="more"){view="more";}
+
+
+  else if(tab==="swap"){view="swap";}
+  else if(tab==="albums"){view="albums";}
   render();
 }
-function goHome(){view="home";activeTab="home";filterMode="all";searchQ="";render();}
-function goSec(i){view="section";activeTab="home";selSec=i;filterMode="all";secSearchQ="";render();}
+function goHome(){view="home";activeTab="home";filterMode="all";searchQ="";render();window.scrollTo(0,0);}
+function goAlbums(){view="albums";activeTab="albums";bulkMode=null;showExport=false;render();window.scrollTo(0,0);}
+function goSec(i){view="section";activeTab="home";selSec=i;filterMode="all";secSearchQ="";render();window.scrollTo(0,0);}
 function goSearch(){view="search";activeTab="search";searchQ="";render();}
-function goDupes(){view="dupes";activeTab="stats";render();}
-function goStats(){view="stats";activeTab="stats";render();}
+function goDupes(){view="dupes";activeTab="albums";render();}
+
 function onSearch(v){searchQ=v;render();}
 function onSecSearch(v){secSearchQ=v;render();var inp=document.getElementById("secinput");if(inp){inp.focus();inp.setSelectionRange(v.length,v.length);}}
 function onHomeSearch(v){homeSearchQ=v;render();var inp=document.getElementById("hinput");if(inp){inp.focus();inp.setSelectionRange(v.length,v.length);}}
@@ -684,7 +747,8 @@ function emptySection(idx){
 // ─── TOOLS & MORE VIEWS ────────────────────────────────
 function renderTools(){
   var dc=dupeCount(),oc=ownedCount(),miss=TOTAL-oc;
-  var h='<div class="header"><h1>🔄 Gestionar Láminas</h1><div class="sub">Registrar, quitar, comparar y exportar</div></div>';
+  var curName=getAlbum(currentAlbumId)?getAlbum(currentAlbumId).name:'Álbum';
+  var h='<div class="header"><div class="hdr-row"><button class="back-btn" onclick="goAlbums()">←</button><div class="hdr-content"><h1>🔄 Gestión</h1><div class="sub">'+curName+'</div></div></div></div>';
   h+='<div class="hdr-spacer"></div>';
   if(!bulkMode&&!showExport){
     h+='<div class="sec-title">Registrar / Quitar</div>';
@@ -709,7 +773,7 @@ function renderTools(){
       h+='<div class="bulk-hint">Pega un listado y te dirá cuáles ya tienes y cuáles te faltan</div>';
       h+='<div class="bulk-btns">';
       h+='<button class="bulk-go" style="background:#3b82f6;color:#fff" onclick="bulkCheck()">🔎 Comparar</button>';
-      h+='<button class="bulk-go" style="background:#e5e7eb;color:#6b7280" onclick="bulkMode=null;render()">Cancelar</button>';
+      h+='<button class="bulk-go" style="background:#e5e7eb;color:#6b7280" onclick="goAlbums()">Cancelar</button>';
       h+='</div>';
       if(checkResult) h+=checkResult;
       h+='</div>';
@@ -720,7 +784,7 @@ function renderTools(){
       h+='<div class="bulk-btns">';
       if(bulkMode==="add") h+='<button class="bulk-go bulk-add" onclick="bulkAdd()">✅ Registrar</button>';
       else h+='<button class="bulk-go bulk-rem" onclick="bulkRemove()">❌ Quitar</button>';
-      h+='<button class="bulk-go" style="background:#e5e7eb;color:#6b7280" onclick="bulkMode=null;render()">Cancelar</button>';
+      h+='<button class="bulk-go" style="background:#e5e7eb;color:#6b7280" onclick="goAlbums()">Cancelar</button>';
       h+='</div>';
       if(bulkResult) h+='<div class="bulk-result" style="background:'+(bulkResult.ok?"#dcfce7;color:#16a34a":"#fee2e2;color:#dc2626")+'">'+bulkResult.msg+'</div>';
       h+='</div>';
@@ -740,7 +804,7 @@ function renderTools(){
     h+='<div style="font-size:11px;color:#9ca3af;margin-top:4px">'+expHint+'</div>';
     h+='<button class="copy-btn" onclick="copyExport()">📋 Copiar al portapapeles</button>';
     h+='<button class="wa-btn" onclick="shareWhatsApp()">💬 Compartir por WhatsApp</button>';
-    h+='<button class="bulk-go" style="background:#e5e7eb;color:#6b7280;width:100%;margin-top:6px" onclick="showExport=false;render()">Volver</button>';
+    h+='<button class="bulk-go" style="background:#e5e7eb;color:#6b7280;width:100%;margin-top:6px" onclick="goAlbums()">Volver</button>';
     h+='</div>';
   }
   h+='<div style="height:24px"></div>';
@@ -748,28 +812,176 @@ function renderTools(){
   app.innerHTML=h;
 }
 
-function renderMore(){
-  var oc=ownedCount();
-  var h='<div class="header"><h1>⚙️ Opciones</h1><div class="sub">Herramientas del álbum</div></div>';
+function renderSwap(){
+  var h='<div class="header"><h1>🔄 Intercambio</h1><div class="sub">Láminas que se pueden intercambiar entre álbumes</div></div>';
   h+='<div class="hdr-spacer"></div>';
-  h+='<div class="sec-title">Álbum Completo</div>';
-  h+='<div class="tools-grid">';
-  h+='<div class="tool-card" onclick="fillAll()"><div class="tool-card-icon">✅</div><div class="tool-card-title">Llenar Todo</div><div class="tool-card-desc">Marcar 980 láminas</div></div>';
-  h+='<div class="tool-card" onclick="emptyAll()"><div class="tool-card-icon">🗑️</div><div class="tool-card-title">Vaciar Todo</div><div class="tool-card-desc">Borrar todo el progreso</div></div>';
+  if(albums.length<2){
+    h+='<div style="margin:40px 16px;text-align:center"><div style="font-size:48px;margin-bottom:12px">🤝</div>';
+    h+='<div style="font-size:15px;color:#5c4a2d;font-weight:600;margin-bottom:6px">Necesitas al menos 2 álbumes</div>';
+    h+='<div style="font-size:13px;color:#9a918a">Crea un segundo álbum desde la pestaña 👥 Álbumes para ver los posibles intercambios</div></div>';
+  } else {
+    var anySwap=false;
+    for(var ai=0;ai<albums.length;ai++){
+      for(var aj=ai+1;aj<albums.length;aj++){
+        var a1=albums[ai],a2=albums[aj];
+        var a1gives=[],a2gives=[];
+        for(var k in a1.dupes){if(a1.dupes[k]>0&&!a2.owned[k])a1gives.push(k);}
+        for(var k in a2.dupes){if(a2.dupes[k]>0&&!a1.owned[k])a2gives.push(k);}
+        if(a1gives.length===0&&a2gives.length===0) continue;
+        anySwap=true;
+        h+='<div style="margin:0 16px 10px;background:#faf8f5;border:1.5px solid #d9ccb8;border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)">';
+        h+='<div style="font-weight:700;color:#5c4a2d;font-size:15px;margin-bottom:10px">'+a1.name+' ↔ '+a2.name+'</div>';
+        if(a1gives.length>0){
+          h+='<div style="background:#edf5e8;border-radius:10px;padding:10px;margin-bottom:8px">';
+          h+='<div style="font-size:12px;font-weight:600;color:#4a7a3a;margin-bottom:4px">'+a1.name+' → '+a2.name+' <span style="font-weight:400;color:#6b7280">('+a1gives.length+')</span></div>';
+          h+='<div style="font-size:11px;color:#374151;line-height:1.6;max-height:80px;overflow-y:auto">'+a1gives.join(', ')+'</div>';
+          h+='</div>';
+        }
+        if(a2gives.length>0){
+          h+='<div style="background:#e8eef5;border-radius:10px;padding:10px">';
+          h+='<div style="font-size:12px;font-weight:600;color:#3a5a7a;margin-bottom:4px">'+a2.name+' → '+a1.name+' <span style="font-weight:400;color:#6b7280">('+a2gives.length+')</span></div>';
+          h+='<div style="font-size:11px;color:#374151;line-height:1.6;max-height:80px;overflow-y:auto">'+a2gives.join(', ')+'</div>';
+          h+='</div>';
+        }
+        h+='</div>';
+      }
+    }
+    if(!anySwap){
+      h+='<div style="margin:40px 16px;text-align:center"><div style="font-size:48px;margin-bottom:12px">📭</div>';
+      h+='<div style="font-size:15px;color:#5c4a2d;font-weight:600;margin-bottom:6px">No hay intercambios posibles</div>';
+      h+='<div style="font-size:13px;color:#9a918a">Registra repetidas en tus álbumes para ver qué láminas pueden intercambiarse</div></div>';
+    }
+  }
+  h+='<div style="height:24px"></div>';
+  h+=bottomNav();
+  app.innerHTML=h;
+  window.scrollTo(0,0);
+}
+
+function renderAlbums(){
+  var h='<div class="header"><h1>📗 Álbumes</h1><div class="sub">Gestión de álbumes</div></div>';
+  h+='<div class="hdr-spacer"></div>';
+  h+='<div class="sec-title">Mis Álbumes</div>';
+  h+='<div style="margin:0 16px">';
+  for(var ai=0;ai<albums.length;ai++){
+    var ab=albums[ai],abSt=0;for(var k in ab.owned)if(ab.owned[k])abSt++;
+    var abPct=TOTAL?Math.round(abSt/TOTAL*100):0;
+    var abDc=0;for(var k in ab.dupes)abDc+=(ab.dupes[k]||0);
+    var abMiss=TOTAL-abSt;
+    var isCur=ab.id===currentAlbumId;
+    var isCur=ab.id===currentAlbumId;
+    h+='<div style="background:'+(isCur?'#faf8f5':'#fff')+';border:1.5px solid '+(isCur?'#c4a882':'#e5e1db')+';border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)">';
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h+='<div style="display:flex;align-items:center;gap:8px;flex:1">';
+    h+='<button onclick="switchAlbum(\''+ab.id+'\');goHome()" style="border:none;background:'+(isCur?'#8b6f47':'#d6cfc5')+';color:'+(isCur?'#fff':'#7a7063')+';border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center" title="Ir al álbum">🏠</button>';
+    h+='<div onclick="switchAlbum(\''+ab.id+'\');goHome()" style="cursor:pointer"><div style="font-weight:700;color:'+(isCur?'#5c4a2d':'#4a4540')+';font-size:15px">'+ab.name+'</div>';
+    h+='<div style="font-size:11px;color:#9a918a">'+abPct+'% completado</div></div>';
+    h+='</div>';
+    h+='<div style="display:flex;gap:4px">';
+    h+='<button onclick="promptRenameAlbum(\''+ab.id+'\')" style="border:none;background:'+(isCur?'#efe8dd':'#f5f2ee')+';border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:13px">✏️</button>';
+    if(albums.length>1) h+='<button onclick="confirmDeleteAlbum(\''+ab.id+'\')" style="border:none;background:#f9f0ee;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:13px">🗑️</button>';
+    h+='</div></div>';
+    h+=barHTML(abPct,'sm');
+    h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;text-align:center;font-size:11px">';
+    h+='<div style="background:#f0ebe4;border-radius:8px;padding:6px 2px"><div style="font-weight:700;color:#5c4a2d;font-size:14px">'+abSt+'</div><div style="color:#9a918a">Tengo</div></div>';
+    h+='<div style="background:#f5ece8;border-radius:8px;padding:6px 2px"><div style="font-weight:700;color:#9b5e4a;font-size:14px">'+abMiss+'</div><div style="color:#9a918a">Faltan</div></div>';
+    h+='<div style="background:#f5f0e0;border-radius:8px;padding:6px 2px"><div style="font-weight:700;color:#8a7433;font-size:14px">'+abDc+'</div><div style="color:#9a918a">Repetidas</div></div>';
+    h+='<div style="background:#e8f0e4;border-radius:8px;padding:6px 2px"><div style="font-weight:700;color:#4a7a3a;font-size:14px">'+abPct+'%</div><div style="color:#9a918a">Avance</div></div>';
+    h+='</div>';
+    h+='<fieldset style="border:1px solid '+(isCur?'#d9ccb8':'#e5e1db')+';border-radius:10px;padding:8px;margin:10px 0 0 0"><legend style="font-size:11px;color:#9a918a;font-weight:600;padding:0 6px">📥 Importar</legend>';
+    h+='<div style="display:flex;gap:6px">';
+    h+='<button onclick="inputMissingForAlbum(\''+ab.id+'\')" style="flex:1;padding:8px 6px;border:none;background:#6b8cae;color:#fff;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">📋 Registrar</button>';
+    h+='<button onclick="removeForAlbum(\''+ab.id+'\')" style="flex:1;padding:8px 6px;border:none;background:#c28562;color:#fff;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">🗑️ Quitar</button>';
+    h+='</div>';
+    h+='</fieldset>';
+    h+='<fieldset style="border:1px solid '+(isCur?'#d9ccb8':'#e5e1db')+';border-radius:10px;padding:8px;margin:8px 0 0 0"><legend style="font-size:11px;color:#9a918a;font-weight:600;padding:0 6px">📤 Exportar</legend>';
+    h+='<div style="display:flex;gap:6px">';
+    h+='<button onclick="missingForAlbum(\''+ab.id+'\')" style="flex:1;padding:8px 6px;border:none;background:#7a9e8e;color:#fff;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">📥 Faltan</button>';
+    h+='<button onclick="exportDupesForAlbum(\''+ab.id+'\')" style="flex:1;padding:8px 6px;border:none;background:#b89e5a;color:#fff;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">🔄 Repetidas</button>';
+    h+='<button onclick="openExportForAlbum(\''+ab.id+'\')" style="flex:1;padding:8px 6px;border:none;background:#8b7fb8;color:#fff;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">📤 Todas</button>';
+    h+='</div>';
+    h+='</fieldset>';
+    h+='<fieldset style="border:1px solid '+(isCur?'#d9ccb8':'#e5e1db')+';border-radius:10px;padding:8px;margin:8px 0 0 0"><legend style="font-size:11px;color:#9a918a;font-weight:600;padding:0 6px">⚙️ Gestión</legend>';
+    h+='<div style="display:flex;gap:6px">';
+    h+='<button onclick="fillAlbumById(\''+ab.id+'\')" style="flex:1;padding:8px 6px;border:none;background:#6a9a6a;color:#fff;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">✅ Llenar todo</button>';
+    h+='<button onclick="emptyAlbumById(\''+ab.id+'\')" style="flex:1;padding:8px 6px;border:none;background:#b86a6a;color:#fff;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">🗑️ Vaciar todo</button>';
+    h+='</div>';
+    h+='</fieldset>';
+    h+='</div>';
+  }
+  h+='<button onclick="promptNewAlbum()" style="width:100%;padding:12px;border:2px dashed #d1d5db;border-radius:12px;background:none;color:#6b7280;font-size:14px;cursor:pointer;margin-bottom:12px">+ Crear nuevo álbum</button>';
   h+='</div>';
-  h+='<div class="sec-title" style="margin-top:16px">Información</div>';
+
+  h+='<div class="sec-title" style="margin-top:8px">Información</div>';
   h+='<div style="margin:0 16px;background:#fff;border-radius:14px;padding:16px;border:1px solid #e5e7eb">';
   h+='<div style="font-size:13px;color:#6b7280;line-height:1.6">';
-  h+='<div style="margin-bottom:8px"><strong style="color:#1e3a5f">🏆 Álbum Mundial 2026</strong></div>';
-  h+='<div>📊 Total: <strong>980</strong> láminas</div>';
-  h+='<div>✅ Tengo: <strong>'+oc+'</strong></div>';
-  h+='<div>❌ Faltan: <strong>'+(TOTAL-oc)+'</strong></div>';
-  h+='<div>🔄 Repetidas: <strong>'+dupeCount()+'</strong></div>';
-  h+='<div style="margin-top:8px;font-size:11px;color:#9ca3af">Panini Colombia · 48 selecciones + especiales</div>';
+  h+='<div style="margin-bottom:4px"><strong style="color:#1e3a5f">🏆 Álbum Mundial 2026</strong></div>';
+  h+='<div>Panini Colombia · 48 selecciones + especiales</div>';
+  h+='<div>📊 Total: <strong>'+TOTAL+'</strong> láminas</div>';
   h+='</div></div>';
   h+='<div style="height:24px"></div>';
   h+=bottomNav();
   app.innerHTML=h;
+  window.scrollTo(0,0);
+}
+
+function fillAlbumById(id){
+  showModal('¿Llenar TODO este álbum?<br>('+TOTAL+' láminas)','Llenar','modal-ok',function(){
+    var a=getAlbum(id);if(!a)return;
+    for(var i=0;i<SECS.length;i++)for(var j=0;j<SECS[i].stickers.length;j++)a.owned[SECS[i].stickers[j].c]=true;
+    if(id===currentAlbumId)owned=a.owned;
+    saveAlbums();render();showToast("Álbum llenado");
+  });
+}
+function emptyAlbumById(id){
+  showModal('¿Vaciar TODO este álbum?<br>Se perderán láminas y repetidas.','Vaciar','modal-danger',function(){
+    var a=getAlbum(id);if(!a)return;
+    a.owned={};a.dupes={};
+    if(id===currentAlbumId){owned=a.owned;dupes=a.dupes;}
+    saveAlbums();render();showToast("Álbum vaciado");
+  });
+}
+function inputMissingForAlbum(id){
+  var prev=currentAlbumId;
+  switchAlbum(id);
+  activeTab="tools";view="tools";bulkMode="add";render();
+  window.scrollTo(0,0);
+}
+function openExportForAlbum(id){
+  switchAlbum(id);activeTab="tools";view="tools";showExport=true;exportMode="owned";bulkMode=null;render();window.scrollTo(0,0);
+}
+function openCompareForAlbum(id){
+  switchAlbum(id);activeTab="tools";view="tools";bulkMode="check";showExport=false;render();window.scrollTo(0,0);
+}
+function removeForAlbum(id){
+  switchAlbum(id);activeTab="tools";view="tools";bulkMode="rem";showExport=false;render();window.scrollTo(0,0);
+}
+function missingForAlbum(id){
+  switchAlbum(id);activeTab="tools";view="tools";showExport=true;exportMode="missing";bulkMode=null;render();window.scrollTo(0,0);
+}
+function exportDupesForAlbum(id){
+  switchAlbum(id);activeTab="tools";view="tools";showExport=true;exportMode="dupes";bulkMode=null;render();window.scrollTo(0,0);
+}
+function viewDupesForAlbum(id){
+  switchAlbum(id);view="dupes";activeTab="stats";render();window.scrollTo(0,0);
+}
+function promptNewAlbum(){
+  var name=prompt("Nombre del nuevo álbum (ej: Papá, Juan, María):");
+  if(!name||!name.trim())return;
+  var id=createAlbum(name.trim());
+  switchAlbum(id);
+  showToast("Álbum '"+name.trim()+"' creado");
+}
+function promptRenameAlbum(id){
+  var a=getAlbum(id);if(!a)return;
+  var name=prompt("Nuevo nombre:",a.name);
+  if(!name||!name.trim())return;
+  renameAlbum(id,name.trim());
+  render();showToast("Álbum renombrado");
+}
+function confirmDeleteAlbum(id){
+  var a=getAlbum(id);if(!a)return;
+  showModal("¿Eliminar el álbum \""+a.name+"\"? Se perderán todas las láminas registradas.","Eliminar","#ef4444",function(){deleteAlbum(id);showToast("Álbum eliminado");});
 }
 
 // ─── EXPORT ─────────────────────────────────────────────
