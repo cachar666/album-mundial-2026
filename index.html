@@ -918,6 +918,10 @@ function renderSwap(){
         for(var k in a2.dupes){if(a2.dupes[k]>0&&!a1.owned[k])a2gives.push(k);}
         if(a1gives.length===0&&a2gives.length===0) continue;
         anySwap=true;
+        var swapId='swap_'+ai+'_'+aj;
+        var swapText='';
+        if(a1gives.length>0) swapText+=a1.name+' → '+a2.name+' ('+a1gives.length+'):\n'+a1gives.join(', ')+'\n\n';
+        if(a2gives.length>0) swapText+=a2.name+' → '+a1.name+' ('+a2gives.length+'):\n'+a2gives.join(', ');
         h+='<div style="margin:0 16px 10px;background:#faf8f5;border:1.5px solid #d9ccb8;border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)">';
         h+='<div style="font-weight:700;color:#5c4a2d;font-size:15px;margin-bottom:10px">'+a1.name+' ↔ '+a2.name+'</div>';
         if(a1gives.length>0){
@@ -927,11 +931,16 @@ function renderSwap(){
           h+='</div>';
         }
         if(a2gives.length>0){
-          h+='<div style="background:#e8eef5;border-radius:10px;padding:10px">';
+          h+='<div style="background:#e8eef5;border-radius:10px;padding:10px;margin-bottom:8px">';
           h+='<div style="font-size:12px;font-weight:600;color:#3a5a7a;margin-bottom:4px">'+a2.name+' → '+a1.name+' <span style="font-weight:400;color:#6b7280">('+a2gives.length+')</span></div>';
           h+='<div style="font-size:11px;color:#374151;line-height:1.6;max-height:80px;overflow-y:auto">'+a2gives.join(', ')+'</div>';
           h+='</div>';
         }
+        h+='<div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">';
+        h+='<button onclick="copySwap(\''+swapId+'\')" style="padding:4px 10px;border:none;background:transparent;color:#8892ab;font-size:11px;cursor:pointer;font-weight:500">📋 Copiar</button>';
+        h+='<button onclick="shareSwapWA(\''+swapId+'\')" style="padding:4px 10px;border:none;background:transparent;color:#25d366;font-size:11px;cursor:pointer;font-weight:500">💬 WhatsApp</button>';
+        h+='</div>';
+        h+='<textarea id="'+swapId+'" style="display:none">🔄 Intercambio: '+a1.name+' ↔ '+a2.name+'\n\n'+swapText.replace(/'/g,"\\u0027")+'</textarea>';
         h+='</div>';
       }
     }
@@ -947,6 +956,15 @@ function renderSwap(){
   window.scrollTo(0,0);
 }
 
+function copySwap(id){
+  var ta=document.getElementById(id);if(!ta)return;
+  try{navigator.clipboard.writeText(ta.value).then(function(){showToast('✅ Copiado al portapapeles');});}
+  catch(e){ta.style.display='block';ta.select();document.execCommand('copy');ta.style.display='none';showToast('✅ Copiado');}
+}
+function shareSwapWA(id){
+  var ta=document.getElementById(id);if(!ta)return;
+  window.open('https://wa.me/?text='+encodeURIComponent(ta.value),'_blank');
+}
 function renderAlbums(){
   var h='<div class="header"><h1>📗 Álbumes</h1><div class="sub">Gestión de álbumes</div></div>';
   h+='<div class="hdr-spacer"></div>';

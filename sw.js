@@ -1,4 +1,4 @@
-var CACHE='mundial2026-v51';
+var CACHE='mundial2026-v53';
 var URLS=['./', './index.html', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function(e){
