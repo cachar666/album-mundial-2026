@@ -904,6 +904,12 @@ function renderTools(){
 function renderSwap(){
   var h='<div class="header"><h1>🔄 Intercambio</h1><div class="sub">Láminas que se pueden intercambiar entre álbumes</div></div>';
   h+='<div class="hdr-spacer"></div>';
+  h+='<div style="margin:8px 16px 12px">';
+  h+='<div onclick="openSwapSearch()" style="padding:14px;background:linear-gradient(135deg,#4a5575,#3a4565);color:#fff;border-radius:12px;text-align:center;cursor:pointer;box-shadow:0 2px 6px rgba(74,85,117,.2)">';
+  h+='<div style="font-size:20px;margin-bottom:4px">🔍</div>';
+  h+='<div style="font-size:13px;font-weight:600">Buscar repetidas para cambio</div>';
+  h+='<div style="font-size:11px;opacity:.7;margin-top:2px">Pega un listado externo y compara con tu álbum</div>';
+  h+='</div></div>';
   if(albums.length<2){
     h+='<div style="margin:40px 16px;text-align:center"><div style="font-size:48px;margin-bottom:12px">🤝</div>';
     h+='<div style="font-size:15px;color:#5c4a2d;font-weight:600;margin-bottom:6px">Necesitas al menos 2 álbumes</div>';
@@ -956,6 +962,74 @@ function renderSwap(){
   window.scrollTo(0,0);
 }
 
+function openSwapSearch(){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px';
+  d.innerHTML='<div style="background:#fff;border-radius:16px;padding:20px;max-width:400px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.2)">'
+    +'<div style="font-weight:700;color:#3a4055;font-size:16px;margin-bottom:4px">🔍 Buscar repetidas para cambio</div>'
+    +'<div style="font-size:12px;color:#9a918a;margin-bottom:12px">Pega las repetidas de otra persona y te digo cuáles te faltan</div>'
+    +'<textarea id="swap-ta" placeholder="Pega códigos: MEX3, RSA2, KOR8..." style="width:100%;height:100px;padding:10px;border:1.5px solid #8892ab;border-radius:10px;font-size:12px;resize:none;box-sizing:border-box;font-family:inherit"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
+    +'<button id="swap-go" style="flex:1;padding:10px;border:none;background:#4a5575;color:#fff;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">🔍 Comparar</button>'
+    +'<button id="swap-close" style="padding:10px 16px;border:none;background:#eef0f5;color:#4a5575;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Cerrar</button>'
+    +'</div>'
+    +'<div id="swap-results"></div>'
+    +'</div>';
+  document.body.appendChild(d);
+  d.onclick=function(e){if(e.target===d)document.body.removeChild(d);};
+  document.getElementById('swap-close').onclick=function(){document.body.removeChild(d);};
+  document.getElementById('swap-go').onclick=function(){
+    var raw=document.getElementById('swap-ta').value;
+    var parts=raw.split(/[,;\s\n]+/);
+    var need=[],have=[],bad=[];
+    for(var i=0;i<parts.length;i++){
+      var c=parts[i].trim().toUpperCase();if(!c)continue;
+      var found=null;
+      for(var si=0;si<SECS.length&&!found;si++)
+        for(var sj=0;sj<SECS[si].stickers.length;sj++)
+          if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
+      if(!found){bad.push(c);continue;}
+      if(!owned[found]) need.push(found);
+      else have.push(found);
+    }
+    var rDiv=document.getElementById('swap-results');
+    var rh='';
+    if(need.length>0){
+      rh+='<div style="background:#edf5e8;border-radius:10px;padding:10px;margin-top:12px">';
+      rh+='<div style="font-size:12px;font-weight:600;color:#4a7a3a;margin-bottom:4px">✅ Te sirven ('+need.length+')</div>';
+      rh+='<div id="swap-need" style="font-size:11px;color:#374151;line-height:1.6">'+need.join(', ')+'</div>';
+      rh+='<div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">';
+      rh+='<button onclick="copySwapResult(\'need\')" style="padding:4px 10px;border:none;background:transparent;color:#4a7a3a;font-size:11px;cursor:pointer;font-weight:500">📋 Copiar</button>';
+      rh+='<button onclick="waSwapResult(\'need\')" style="padding:4px 10px;border:none;background:transparent;color:#25d366;font-size:11px;cursor:pointer;font-weight:500">💬 WhatsApp</button>';
+      rh+='</div></div>';
+    }
+    if(have.length>0){
+      rh+='<div style="background:#f5ece8;border-radius:10px;padding:10px;margin-top:8px">';
+      rh+='<div style="font-size:12px;font-weight:600;color:#9b5e4a;margin-bottom:4px">❌ Ya tienes ('+have.length+')</div>';
+      rh+='<div style="font-size:11px;color:#9a918a;line-height:1.6;max-height:60px;overflow-y:auto">'+have.join(', ')+'</div>';
+      rh+='</div>';
+    }
+    if(bad.length>0){
+      rh+='<div style="font-size:11px;color:#9a918a;margin-top:8px">⚠️ No encontradas: '+bad.join(', ')+'</div>';
+    }
+    if(need.length===0&&have.length===0&&bad.length===0){
+      rh+='<div style="text-align:center;color:#9a918a;margin-top:12px;font-size:13px">Pega las repetidas para comparar</div>';
+    }
+    if(need.length===0&&(have.length>0||bad.length>0)){
+      rh+='<div style="background:#fef3c7;border-radius:10px;padding:10px;margin-top:8px;text-align:center"><div style="font-size:12px;font-weight:600;color:#92400e">Ninguna te sirve de este listado</div></div>';
+    }
+    rDiv.innerHTML=rh;
+  };
+}
+function copySwapResult(type){
+  var el=document.getElementById('swap-'+type);if(!el)return;
+  try{navigator.clipboard.writeText(el.textContent).then(function(){showToast('✅ Copiado');});}catch(e){showToast('No se pudo copiar');}
+}
+function waSwapResult(type){
+  var el=document.getElementById('swap-'+type);if(!el)return;
+  var msg='🏆 Láminas que me sirven para cambio:\n'+el.textContent;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
 function copySwap(id){
   var ta=document.getElementById(id);if(!ta)return;
   try{navigator.clipboard.writeText(ta.value).then(function(){showToast('✅ Copiado al portapapeles');});}
