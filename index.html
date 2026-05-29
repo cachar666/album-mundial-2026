@@ -367,9 +367,26 @@ loadAlbums();
 
 var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false;
 // Today counter
-var todayKey="panini2026_today",todayData={};
-try{var td=JSON.parse(localStorage.getItem(todayKey));if(td&&td.date===new Date().toDateString()){todayData=td;}else{todayData={date:new Date().toDateString(),count:0};}}catch(e){todayData={date:new Date().toDateString(),count:0};}
-function saveToday(){try{localStorage.setItem(todayKey,JSON.stringify(todayData));}catch(e){}}
+var albumHistory={};
+function loadHistory(){try{var d=JSON.parse(localStorage.getItem("panini2026_history"));if(d)albumHistory=d;}catch(e){}}
+function saveHistory(){try{localStorage.setItem("panini2026_history",JSON.stringify(albumHistory));}catch(e){}}
+function getAlbumHist(id){if(!albumHistory[id])albumHistory[id]=[];return albumHistory[id];}
+function addToHistory(albumId,code){
+  var hist=getAlbumHist(albumId);
+  var today=new Date().toDateString();
+  var last=hist.length>0?hist[hist.length-1]:null;
+  if(last&&last.date===today){if(last.codes.indexOf(code)<0)last.codes.push(code);}
+  else{hist.push({date:today,codes:[code]});}
+  if(hist.length>30)hist.splice(0,hist.length-30);
+  saveHistory();
+}
+function getTodayCount(albumId){
+  var hist=getAlbumHist(albumId);
+  if(hist.length===0)return 0;
+  var last=hist[hist.length-1];
+  return last.date===new Date().toDateString()?last.codes.length:0;
+}
+loadHistory();
 var app=document.getElementById("app");
 
 function ownedCount(){var n=0;for(var k in owned)if(owned[k])n++;return n;}
@@ -407,7 +424,7 @@ function renderHome(){
   var oc=ownedCount(),dc=dupeCount(),pct=(oc/TOTAL*100).toFixed(1);
   var h='<div class="header"><h1>🏆 Álbum Mundial 2026</h1><div class="sub">Panini Colombia · 980 láminas</div></div>';
   h+='<div class="hdr-spacer"></div>';
-  var todayN=todayData.date===new Date().toDateString()?todayData.count:0;
+  var todayN=getTodayCount(currentAlbumId);
   h+='<div class="overview"><div class="ov-top"><div><div class="ov-pct">'+pct+'% <span class="ov-sub">'+oc+'/'+TOTAL+'</span>'+(todayN>0?'<span class="today-badge">+'+todayN+' hoy</span>':'')+'</div></div><div class="ov-counts"><span class="c-green">✓'+oc+'</span><span class="c-red">✗'+(TOTAL-oc)+'</span><span class="c-amber">⟳'+dc+'</span></div></div>';
   h+=barHTML(parseFloat(pct),"sm");
   h+='</div>';
@@ -600,7 +617,7 @@ function renderStats(){
 // ─── ACTIONS ────────────────────────────────────────────────
 function toggle(c){
   if(owned[c]){dupes[c]=(dupes[c]||0)+1;save();render();try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}return;}
-  owned[c]=true;if(todayData.date!==new Date().toDateString()){todayData={date:new Date().toDateString(),count:0};}todayData.count++;saveToday();
+  owned[c]=true;addToHistory(currentAlbumId,c);
   save();render();
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
   setTimeout(function(){var el=document.querySelector('[data-code="'+c+'"]');if(el){el.classList.add('pop');setTimeout(function(){el.classList.remove('pop');},300);}},10);
@@ -685,7 +702,7 @@ function bulkAdd(){
     for(var si=0;si<SECS.length&&!found;si++)
       for(var sj=0;sj<SECS[si].stickers.length;sj++)
         if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
-    if(found){if(!owned[found]){owned[found]=true;added++;}else{dupes[found]=(dupes[found]||0)+1;added++;}}
+    if(found){if(!owned[found]){owned[found]=true;addToHistory(currentAlbumId,found);added++;}else{dupes[found]=(dupes[found]||0)+1;added++;}}
     else bad.push(c);
   }
   save();
@@ -911,6 +928,19 @@ function renderAlbums(){
     h+='<button onclick="emptyAlbumById(\''+ab.id+'\')" style="flex:1;padding:8px 6px;border:none;background:#b86a6a;color:#fff;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600">🗑️ Vaciar todo</button>';
     h+='</div>';
     h+='</fieldset>';
+    var abHist=getAlbumHist(ab.id);
+    if(abHist.length>0){
+      h+='<fieldset style="border:1px solid '+(isCur?'#d9ccb8':'#e5e1db')+';border-radius:10px;padding:8px;margin:8px 0 0 0"><legend style="font-size:11px;color:#9a918a;font-weight:600;padding:0 6px">📋 Historial</legend>';
+      for(var hi=abHist.length-1;hi>=Math.max(0,abHist.length-5);hi--){
+        var hd=abHist[hi],isToday=hd.date===new Date().toDateString();
+        h+='<div onclick="openHistDay(\''+ab.id+'\','+hi+')" style="display:flex;align-items:center;justify-content:space-between;padding:8px;margin-bottom:4px;background:'+(isToday?'#edf5e8':'#f5f2ee')+';border-radius:8px;cursor:pointer">';
+        h+='<div><div style="font-size:12px;font-weight:600;color:'+(isToday?'#4a7a3a':'#5c4a2d')+'">'+(isToday?'📅 Hoy':hd.date)+'</div>';
+        h+='<div style="font-size:11px;color:#9a918a">'+hd.codes.length+' láminas registradas</div></div>';
+        h+='<span style="font-size:16px">📋</span>';
+        h+='</div>';
+      }
+      h+='</fieldset>';
+    }
     h+='</div>';
   }
   h+='<button onclick="promptNewAlbum()" style="width:100%;padding:12px;border:2px dashed #d1d5db;border-radius:12px;background:none;color:#6b7280;font-size:14px;cursor:pointer;margin-bottom:12px">+ Crear nuevo álbum</button>';
@@ -968,6 +998,38 @@ function exportDupesForAlbum(id){
 }
 function viewDupesForAlbum(id){
   switchAlbum(id);view="dupes";activeTab="stats";render();window.scrollTo(0,0);
+}
+function openHistDay(albumId,idx){
+  var hist=getAlbumHist(albumId);
+  if(!hist[idx])return;
+  var hd=hist[idx];
+  var isToday=hd.date===new Date().toDateString();
+  var title=isToday?'Registradas Hoy':hd.date;
+  var text=hd.codes.join(', ');
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px';
+  d.innerHTML='<div style="background:#fff;border-radius:16px;padding:20px;max-width:400px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.2)">'
+    +'<div style="font-weight:700;color:#5c4a2d;font-size:16px;margin-bottom:4px">📋 '+title+'</div>'
+    +'<div style="font-size:12px;color:#9a918a;margin-bottom:12px">'+hd.codes.length+' láminas</div>'
+    +'<textarea id="hist-ta" readonly style="width:100%;height:120px;padding:10px;border:1px solid #d9ccb8;border-radius:10px;font-size:12px;color:#374151;resize:none;background:#faf8f5;box-sizing:border-box">'+text+'</textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:12px">'
+    +'<button id="hist-copy" style="flex:1;padding:10px;border:none;background:#6b8cae;color:#fff;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📋 Copiar</button>'
+    +'<button id="hist-wa" style="flex:1;padding:10px;border:none;background:#25d366;color:#fff;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">💬 WhatsApp</button>'
+    +'</div>'
+    +'<button id="hist-close" style="width:100%;padding:10px;border:none;background:#f5f2ee;color:#5c4a2d;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px">Cerrar</button>'
+    +'</div>';
+  document.body.appendChild(d);
+  document.getElementById('hist-copy').onclick=function(){
+    var ta=document.getElementById('hist-ta');ta.select();
+    try{navigator.clipboard.writeText(ta.value).then(function(){showToast('✅ Copiado');});}catch(e){document.execCommand('copy');showToast('✅ Copiado');}
+  };
+  document.getElementById('hist-wa').onclick=function(){
+    var an=getAlbum(albumId);var aname=an?an.name:'Álbum';
+    var msg='🏆 '+aname+' - '+title+'\n'+hd.codes.length+' láminas:\n'+text;
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  };
+  document.getElementById('hist-close').onclick=function(){document.body.removeChild(d);};
+  d.onclick=function(e){if(e.target===d)document.body.removeChild(d);};
 }
 function promptNewAlbum(){
   var name=prompt("Nombre del nuevo álbum (ej: Papá, Juan, María):");
