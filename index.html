@@ -56,7 +56,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .chips{display:flex;gap:6px;padding:10px 16px 14px;overflow-x:auto}
 .hdr-spacer-chips{height:calc(120px + env(safe-area-inset-top))}
 .chip{padding:5px 12px;border-radius:20px;font-size:13px;font-weight:600;border:none;cursor:pointer;white-space:nowrap}
-.chip-on{background:#1e3a5f;color:#fff}.chip-off{background:#fff;color:#6b7280;border:1px solid #d1d5db}
+.chip-on{background:#8b6f47;color:#fff}.chip-off{background:#f5efe6;color:#8b6f47;border:1px solid #c4a882}
 .sticker{background:#fff;border-radius:14px;padding:12px;margin:0 16px 8px;border:2px solid #e5e7eb;cursor:pointer;transition:all .15s}
 .sticker:active{transform:scale(.98)}
 .sticker-owned{background:#f0fdf4;border-color:#86efac;opacity:1}
@@ -202,7 +202,7 @@ body{background:#111827}
 .album-name-owned{color:#d1fae5}
 .album-code-owned{color:#86efac}
 .badge-gray{background:#4b5563;color:#9ca3af}
-.chip-off{background:#1f2937;color:#9ca3af;border-color:#374151}
+.chip-off{background:#1f2937;color:#c4a882;border-color:#374151}
 .ac-default{background:#1f2937;color:#9ca3af;border-color:#374151}
 .tool-btn{background:#1f2937;color:#9ca3af;border-color:#374151}
 .search-input,.sec-search,.home-search,.bulk-ta,.export-ta,.album-select{background:#111827;border-color:#374151;color:#e5e7eb}
@@ -365,7 +365,7 @@ function deleteAlbum(id){
 }
 loadAlbums();
 
-var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false;
+var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false,homeOnlyMissing=false;
 // Today counter
 var albumHistory={};
 function loadHistory(){try{var d=JSON.parse(localStorage.getItem("panini2026_history"));if(d)albumHistory=d;}catch(e){}}
@@ -439,12 +439,17 @@ function renderHome(){
   h+='</div>';
   h+='<button onclick="promptNewAlbum()" style="flex-shrink:0;width:38px;height:38px;border-radius:12px;border:1.5px solid #c4a882;background:linear-gradient(135deg,#f5efe6,#ede4d6);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#8b6f47;box-shadow:0 1px 3px rgba(139,111,71,.12)">+</button>';
   h+='</div>';
-  h+='<div style="display:flex;gap:8px;align-items:center;padding:0 16px;margin-bottom:4px">';
+  h+='<div style="background:linear-gradient(135deg,#f5efe6,#ede4d6);border-radius:12px;margin:0 12px 6px;padding:8px;border:1px solid #d9ccb8">';
+  h+='<div style="display:flex;gap:6px;align-items:center">';
   h+='<div style="flex:1;position:relative">';
   h+='<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>';
-  h+='<input class="home-search" type="text" placeholder="Buscar equipo, jugador o código..." value="'+homeSearchQ.replace(/"/g,'&quot;')+'" oninput="onHomeSearch(this.value)" id="hinput" style="width:100%;margin:0;padding-left:32px">';
+  h+='<input class="home-search" type="text" placeholder="Buscar equipo, jugador o código..." value="'+homeSearchQ.replace(/"/g,'&quot;')+'" oninput="onHomeSearch(this.value)" id="hinput" style="width:100%;margin:0;padding-left:32px;border-color:#c4a882">';
   h+='</div>';
-  h+='<button onclick="homeOnlyTeams=!homeOnlyTeams;render()" style="flex-shrink:0;padding:8px 10px;border-radius:10px;border:1.5px solid '+(homeOnlyTeams?'#8b6f47':'#e5e7eb')+';background:'+(homeOnlyTeams?'#f5efe6':'#fff')+';font-size:11px;font-weight:600;color:'+(homeOnlyTeams?'#5c4a2d':'#9a918a')+';cursor:pointer;white-space:nowrap">🏳️ Equipos</button>';
+  h+='</div>';
+  h+='<div style="display:flex;gap:6px;margin-top:6px">';
+  h+='<button onclick="homeOnlyTeams=!homeOnlyTeams;if(homeOnlyTeams)homeOnlyMissing=false;render()" style="flex:1;padding:6px 8px;border-radius:8px;border:1.5px solid '+(homeOnlyTeams?'#8b6f47':'#c4a882')+';background:'+(homeOnlyTeams?'#8b6f47':'transparent')+';font-size:11px;font-weight:600;color:'+(homeOnlyTeams?'#fff':'#8b6f47')+';cursor:pointer;white-space:nowrap">🏳️ Equipos</button>';
+  h+='<button onclick="homeOnlyMissing=!homeOnlyMissing;if(homeOnlyMissing)homeOnlyTeams=false;render()" style="flex:1;padding:6px 8px;border-radius:8px;border:1.5px solid '+(homeOnlyMissing?'#9b5e4a':'#c4a882')+';background:'+(homeOnlyMissing?'#9b5e4a':'transparent')+';font-size:11px;font-weight:600;color:'+(homeOnlyMissing?'#fff':'#8b6f47')+';cursor:pointer;white-space:nowrap">❌ Faltantes</button>';
+  h+='</div>';
   h+='</div>';
   var hq=homeSearchQ.toLowerCase();
   // Check if query matches any stickers (player/code)
@@ -452,7 +457,7 @@ function renderHome(){
   if(hq&&hq.length>=2){
     for(var si=0;si<SECS.length&&stickerHits.length<30;si++){var sec=SECS[si];
       for(var sj=0;sj<sec.stickers.length&&stickerHits.length<30;sj++){var st2=sec.stickers[sj];
-        if(st2.c.toLowerCase().indexOf(hq)>=0||st2.l.toLowerCase().indexOf(hq)>=0) stickerHits.push({s:st2,sec:sec});
+        if(st2.c.toLowerCase().indexOf(hq)>=0||st2.l.toLowerCase().indexOf(hq)>=0){if(!homeOnlyMissing||!owned[st2.c]) stickerHits.push({s:st2,sec:sec});}
       }
     }
   }
@@ -480,6 +485,7 @@ function renderHome(){
   }
   var teams=[];for(var i=2;i<SECS.length;i++){var st=secStats(SECS[i]);teams.push({idx:i,sec:SECS[i],st:st});}
   if(hq) teams=teams.filter(function(t){return t.sec.name.toLowerCase().indexOf(hq)>=0||t.sec.id.toLowerCase().indexOf(hq)>=0;});
+  if(homeOnlyMissing) teams=teams.filter(function(t){return t.st.pct<100;});
   if(sortMode==="progress") teams.sort(function(a,b){return b.st.pct-a.st.pct||a.sec.name.localeCompare(b.sec.name);});
   else if(sortMode==="progress-asc") teams.sort(function(a,b){return a.st.pct-b.st.pct||a.sec.name.localeCompare(b.sec.name);});
   if(!showStickers||teamHits.length>0){
@@ -504,10 +510,10 @@ function renderSection(){
   }
   h+='</div>';
   h+='<div class="'+(albumMode?'hdr-spacer':'hdr-spacer-chips')+'"></div>';
-  h+='<div style="padding:6px 16px 0;display:flex;gap:6px">';
+  h+='<div style="margin:6px 12px 0;background:linear-gradient(135deg,#f5efe6,#ede4d6);border-radius:12px;padding:8px;border:1px solid #d9ccb8;display:flex;gap:6px">';
   h+='<div style="position:relative;flex:1">';
   h+='<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>';
-  h+='<input class="sec-search" type="text" placeholder="Filtrar por nombre o código..." value="'+secSearchQ.replace(/"/g,'&quot;')+'" oninput="onSecSearch(this.value)" id="secinput" style="padding-left:32px">';
+  h+='<input class="sec-search" type="text" placeholder="Filtrar por nombre o código..." value="'+secSearchQ.replace(/"/g,'&quot;')+'" oninput="onSecSearch(this.value)" id="secinput" style="padding-left:32px;border-color:#c4a882">';
   h+='</div>';
   h+='</div>';
   h+='<div style="padding-top:4px">';
