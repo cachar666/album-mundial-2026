@@ -425,7 +425,7 @@ function renderHome(){
   var h='<div class="header"><h1>🏆 Álbum Mundial 2026</h1><div class="sub">Panini Colombia · 980 láminas</div></div>';
   h+='<div class="hdr-spacer"></div>';
   var todayN=getTodayCount(currentAlbumId);
-  h+='<div class="overview"><div class="ov-top"><div><div class="ov-pct">'+pct+'% <span class="ov-sub">'+oc+'/'+TOTAL+'</span>'+(todayN>0?'<span class="today-badge">+'+todayN+' hoy</span>':'')+'</div></div><div class="ov-counts"><span class="c-green">✓'+oc+'</span><span class="c-red">✗'+(TOTAL-oc)+'</span><span class="c-amber">⟳'+dc+'</span></div></div>';
+  h+='<div class="overview"><div class="ov-top"><div><div class="ov-pct">'+pct+'% <span class="ov-sub">'+oc+'/'+TOTAL+'</span>'+(todayN>0?'<span class="today-badge" onclick="openTodayHist()" style="cursor:pointer">+'+todayN+' hoy</span>':'')+'</div></div><div class="ov-counts"><span class="c-green">✓'+oc+'</span><span class="c-red">✗'+(TOTAL-oc)+'</span><span class="c-amber">⟳'+dc+'</span></div></div>';
   h+=barHTML(parseFloat(pct),"sm");
   h+='</div>';
   var curA=getAlbum(currentAlbumId);
@@ -998,6 +998,12 @@ function exportDupesForAlbum(id){
 }
 function viewDupesForAlbum(id){
   switchAlbum(id);view="dupes";activeTab="stats";render();window.scrollTo(0,0);
+}
+function openTodayHist(){
+  var hist=getAlbumHist(currentAlbumId);
+  if(hist.length===0)return;
+  var last=hist[hist.length-1];
+  if(last.date===new Date().toDateString()){openHistDay(currentAlbumId,hist.length-1);}
 }
 function openHistDay(albumId,idx){
   var hist=getAlbumHist(albumId);
