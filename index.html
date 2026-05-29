@@ -6,13 +6,17 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1e3a5f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Tracker de láminas Panini FIFA World Cup 2026 - Registra, gestiona y comparte tu álbum">
+<link rel="preconnect" href="https://flagcdn.com" crossorigin>
+<link rel="dns-prefetch" href="https://flagcdn.com">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Album Mundial 2026</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f3f4f6;overscroll-behavior:none;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f3f4f6;overscroll-behavior:none;padding-bottom:calc(64px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
 .header{position:fixed;top:0;left:0;right:0;z-index:20;background:linear-gradient(135deg,#1e3a5f,#4a2d7a);color:#fff;padding:14px 16px 6px;padding-top:calc(14px + env(safe-area-inset-top));box-shadow:0 2px 8px rgba(0,0,0,.2)}
 .header h1{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .header .sub{font-size:11px;opacity:.8;margin-top:2px}
@@ -33,7 +37,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .c-green{color:#16a34a;font-weight:600}.c-red{color:#dc2626;font-weight:600}.c-amber{color:#b45309;font-weight:600}
 .bar{width:100%;border-radius:99px;overflow:hidden;background:#e5e7eb}
 .bar-sm{height:6px}.bar-md{height:10px}
-.bar-fill{height:100%;border-radius:99px;transition:width .4s}
+.bar-fill{height:100%;border-radius:99px;transition:width .4s;will-change:width}
 .quick-row{display:flex;gap:8px;margin:0 16px}
 .quick-btn{flex:1;background:#fff;border-radius:14px;padding:10px 8px;border:1px solid #e5e7eb;text-align:center;cursor:pointer;font-size:20px}
 .quick-btn:active{background:#f9fafb}
@@ -618,8 +622,8 @@ function goSearch(){view="search";activeTab="search";searchQ="";render();}
 function goDupes(){view="dupes";activeTab="albums";render();}
 
 function onSearch(v){searchQ=v;render();}
-function onSecSearch(v){secSearchQ=v;render();var inp=document.getElementById("secinput");if(inp){inp.focus();inp.setSelectionRange(v.length,v.length);}}
-function onHomeSearch(v){homeSearchQ=v;render();var inp=document.getElementById("hinput");if(inp){inp.focus();inp.setSelectionRange(v.length,v.length);}}
+var _sst=0;function onSecSearch(v){secSearchQ=v;clearTimeout(_sst);_sst=setTimeout(function(){render();var inp=document.getElementById("secinput");if(inp){inp.focus();inp.setSelectionRange(v.length,v.length);}},80);}
+var _hst=0;function onHomeSearch(v){homeSearchQ=v;clearTimeout(_hst);_hst=setTimeout(function(){render();var inp=document.getElementById("hinput");if(inp){inp.focus();inp.setSelectionRange(v.length,v.length);}},80);}
 function cycleSort(){sortMode=sortMode==="alpha"?"progress":sortMode==="progress"?"progress-asc":"alpha";render();}
 function shareWhatsApp(){
   var ta=document.getElementById("exportta");if(!ta) return;
@@ -1044,7 +1048,16 @@ function copyExport(){
 
 // ─── INIT ───────────────────────────────────────────────
 render();
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(function(reg){
+    reg.addEventListener('updatefound',function(){
+      var nw=reg.installing;
+      nw.addEventListener('statechange',function(){
+        if(nw.state==='activated'){showToast('App actualizada');}
+      });
+    });
+  });
+}
 </script>
 </body>
 </html>
