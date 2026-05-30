@@ -913,11 +913,17 @@ function renderSwap(){
   var h='<div class="header"><h1>🔄 Intercambio</h1><div class="sub">Láminas que se pueden intercambiar entre álbumes</div></div>';
   h+='<div class="hdr-spacer"></div>';
   h+='<div style="margin:8px 16px 12px">';
-  h+='<div onclick="openSwapSearch()" style="padding:16px;background:#fff;border:2px solid #4a5575;border-radius:14px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.08);display:flex;align-items:center;gap:14px">';
-  h+='<div style="width:48px;height:48px;background:#4a5575;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🔍</div>';
-  h+='<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3a4055">Buscar repetidas</div><div style="font-size:11px;color:#8892ab;margin-top:2px">Toca para pegar las faltantes de otra persona y ver cuáles de tus repetidas le sirven</div></div>';
+  h+='<div onclick="openSwapReceive()" style="padding:16px;background:#fff;border:2px solid #16a34a;border-radius:14px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.08);display:flex;align-items:center;gap:14px">';
+  h+='<div style="width:48px;height:48px;background:#16a34a;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📥</div>';
+  h+='<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3a4055">Buscar para mí</div><div style="font-size:11px;color:#8892ab;margin-top:2px">Pega repetidas de alguien → cuáles necesito</div></div>';
+  h+='<div style="font-size:18px;color:#16a34a">›</div>';
+  h+='</div>';
+  h+='<div onclick="openSwapSearch()" style="padding:16px;background:#fff;border:2px solid #4a5575;border-radius:14px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.08);display:flex;align-items:center;gap:14px;margin-top:8px">';
+  h+='<div style="width:48px;height:48px;background:#4a5575;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📤</div>';
+  h+='<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3a4055">Buscar para otro</div><div style="font-size:11px;color:#8892ab;margin-top:2px">Pega faltantes de alguien → mis repetidas que le sirven</div></div>';
   h+='<div style="font-size:18px;color:#4a5575">›</div>';
-  h+='</div></div>';
+  h+='</div>';
+  h+='</div>';
   if(albums.length<2){
     h+='<div style="margin:40px 16px;text-align:center"><div style="font-size:48px;margin-bottom:12px">🤝</div>';
     h+='<div style="font-size:15px;color:#5c4a2d;font-weight:600;margin-bottom:6px">Necesitas al menos 2 álbumes</div>';
@@ -970,12 +976,80 @@ function renderSwap(){
   window.scrollTo(0,0);
 }
 
+function openSwapReceive(){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px';
+  d.innerHTML='<div style="background:#fff;border-radius:16px;padding:20px;max-width:400px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.2)">'
+    +'<div style="font-weight:700;color:#3a4055;font-size:16px;margin-bottom:4px">📥 Recibir repetidas</div>'
+    +'<div style="font-size:12px;color:#9a918a;margin-bottom:12px">Pega las <strong>repetidas</strong> de alguien y te digo cuáles necesitas para completar tus álbumes</div>'
+    +'<textarea id="recv-ta" placeholder="Pega las repetidas: MEX3, RSA2, KOR8..." style="width:100%;height:100px;padding:10px;border:1.5px solid #16a34a;border-radius:10px;font-size:12px;resize:none;box-sizing:border-box;font-family:inherit"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
+    +'<button id="recv-go" style="flex:1;padding:10px;border:none;background:#16a34a;color:#fff;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📥 Comparar</button>'
+    +'<button id="recv-close" style="padding:10px 16px;border:none;background:#eef0f5;color:#4a5575;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Cerrar</button>'
+    +'</div>'
+    +'<div id="recv-results"></div>'
+    +'</div>';
+  document.body.appendChild(d);
+  d.onclick=function(e){if(e.target===d)document.body.removeChild(d);};
+  document.getElementById('recv-close').onclick=function(){document.body.removeChild(d);};
+  document.getElementById('recv-go').onclick=function(){
+    var raw=document.getElementById('recv-ta').value;
+    var parts=raw.split(/[,;\s\n]+/);
+    var codes=[];
+    var bad=[];
+    for(var i=0;i<parts.length;i++){
+      var c=parts[i].trim().toUpperCase();if(!c)continue;
+      var found=null;
+      for(var si=0;si<SECS.length&&!found;si++)
+        for(var sj=0;sj<SECS[si].stickers.length;sj++)
+          if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
+      if(!found){bad.push(c);continue;}
+      codes.push(found);
+    }
+    var rDiv=document.getElementById('recv-results');
+    var rh='';
+    var totalNeed=0;
+    for(var ai=0;ai<albums.length;ai++){
+      var ab=albums[ai],abNeed=[],abHave=[];
+      for(var ci=0;ci<codes.length;ci++){
+        var cd=codes[ci];
+        if(!ab.owned[cd]) abNeed.push(cd);
+        else abHave.push(cd);
+      }
+      if(abNeed.length>0) totalNeed+=abNeed.length;
+      rh+='<div style="margin-top:10px;background:#faf8f5;border:1px solid #d9ccb8;border-radius:10px;padding:10px">';
+      rh+='<div style="font-size:13px;font-weight:700;color:#3a4055;margin-bottom:6px">📖 '+ab.name+'</div>';
+      if(abNeed.length>0){
+        rh+='<div style="background:#edf5e8;border-radius:8px;padding:8px;margin-bottom:6px">';
+        rh+='<div style="font-size:11px;font-weight:600;color:#4a7a3a;margin-bottom:3px">✅ Te sirven para este álbum ('+abNeed.length+')</div>';
+        rh+='<div id="recv-need-'+ai+'" style="font-size:11px;color:#374151;line-height:1.6">'+abNeed.join(', ')+'</div>';
+        rh+='<div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end">';
+        rh+='<button onclick="copySwapResult(\'recv-need-'+ai+'\')" style="padding:3px 8px;border:none;background:transparent;color:#4a7a3a;font-size:10px;cursor:pointer;font-weight:500">📋 Copiar</button>';
+        rh+='<button onclick="waSwapResult(\'recv-need-'+ai+'\')" style="padding:3px 8px;border:none;background:transparent;color:#25d366;font-size:10px;cursor:pointer;font-weight:500">💬 WhatsApp</button>';
+        rh+='</div></div>';
+      } else {
+        rh+='<div style="font-size:11px;color:#9a918a">Este álbum ya tiene todas esas láminas</div>';
+      }
+      rh+='</div>';
+    }
+    if(bad.length>0){
+      rh+='<div style="font-size:11px;color:#9a918a;margin-top:8px">⚠️ No encontradas: '+bad.join(', ')+'</div>';
+    }
+    if(codes.length===0&&bad.length===0){
+      rh+='<div style="text-align:center;color:#9a918a;margin-top:12px;font-size:13px">Pega las repetidas para comparar</div>';
+    }
+    if(totalNeed===0&&codes.length>0){
+      rh+='<div style="background:#fef3c7;border-radius:10px;padding:10px;margin-top:8px;text-align:center"><div style="font-size:12px;font-weight:600;color:#92400e">Ningún álbum necesita estas láminas</div></div>';
+    }
+    rDiv.innerHTML=rh;
+  };
+}
 function openSwapSearch(){
   var d=document.createElement('div');
   d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px';
   d.innerHTML='<div style="background:#fff;border-radius:16px;padding:20px;max-width:400px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.2)">'
     +'<div style="font-weight:700;color:#3a4055;font-size:16px;margin-bottom:4px">🔍 Buscar repetidas para cambio</div>'
-    +'<div style="font-size:12px;color:#9a918a;margin-bottom:12px">Pega las láminas que le <strong>faltan</strong> a otra persona y te digo cuáles de tus repetidas le sirven</div>'
+    +'<div style="font-size:12px;color:#9a918a;margin-bottom:12px">Pega las <strong>faltantes</strong> de alguien y te digo cuáles de tus repetidas le sirven</div>'
     +'<textarea id="swap-ta" placeholder="Pega las faltantes: MEX3, RSA2, KOR8..." style="width:100%;height:100px;padding:10px;border:1.5px solid #8892ab;border-radius:10px;font-size:12px;resize:none;box-sizing:border-box;font-family:inherit"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:10px">'
     +'<button id="swap-go" style="flex:1;padding:10px;border:none;background:#4a5575;color:#fff;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">🔍 Comparar</button>'
