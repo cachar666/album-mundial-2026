@@ -354,7 +354,9 @@ function saveAlbums(){
   var a=getAlbum(currentAlbumId);if(a){a.owned=owned;a.dupes=dupes;}
   try{localStorage.setItem("panini2026_albums",JSON.stringify(albums));localStorage.setItem("panini2026_current",currentAlbumId);}catch(e){}
 }
-function save(){saveAlbums();}
+var _saveT=0;
+function save(){clearTimeout(_saveT);_saveT=setTimeout(saveAlbums,100);}
+function saveNow(){clearTimeout(_saveT);saveAlbums();}
 function switchAlbum(id){
   var a=getAlbum(currentAlbumId);if(a){a.owned=owned;a.dupes=dupes;}
   currentAlbumId=id;var b=getAlbum(id);
@@ -438,15 +440,19 @@ function bottomNav(){
   }
   return h+'</nav>';
 }
+var _raf=0;
 function render(){
-  if(view==="home") renderHome();
-  else if(view==="section") renderSection();
-  else if(view==="search") renderSearch();
-  else if(view==="dupes") renderDupes();
-
-  else if(view==="tools") renderTools();
-  else if(view==="swap") renderSwap();
-  else if(view==="albums") renderAlbums();
+  if(_raf) return;
+  _raf=requestAnimationFrame(function(){
+    _raf=0;
+    if(view==="home") renderHome();
+    else if(view==="section") renderSection();
+    else if(view==="search") renderSearch();
+    else if(view==="dupes") renderDupes();
+    else if(view==="tools") renderTools();
+    else if(view==="swap") renderSwap();
+    else if(view==="albums") renderAlbums();
+  });
 }
 
 function hdrBack(title,sub){
@@ -669,17 +675,15 @@ function toggle(c){
   owned[c]=true;addToHistory(currentAlbumId,c);
   save();render();
   
-  setTimeout(function(){var el=document.querySelector('[data-code="'+c+'"]');if(el){el.classList.add('pop');setTimeout(function(){el.classList.remove('pop');},300);}},10);
+
 }
 function addDupe(e,c){e.stopPropagation();dupes[c]=(dupes[c]||0)+1;save();render();}
 function remDupe(e,c){e.stopPropagation();if(dupes[c]>0){dupes[c]--;if(dupes[c]===0)delete dupes[c];save();render();}else if(owned[c]){showModal('¿Eliminar <strong>'+c+'</strong> del álbum?<br>No tiene repetidas, se quitará por completo.','Eliminar','modal-danger',function(){delete owned[c];delete dupes[c];save();render();});}}
 function switchTab(tab){activeTab=tab;bulkMode=null;bulkText="";bulkResult=null;checkResult="";showExport=false;
   if(tab==="home"){view="home";filterMode="all";searchQ="";homeSearchQ="";}
-
-
   else if(tab==="swap"){view="swap";}
   else if(tab==="albums"){view="albums";}
-  render();
+  render();window.scrollTo(0,0);
 }
 function goHome(){view="home";activeTab="home";filterMode="all";searchQ="";render();window.scrollTo(0,0);}
 function goAlbums(){view="albums";activeTab="albums";bulkMode=null;showExport=false;render();window.scrollTo(0,0);}
@@ -905,10 +909,10 @@ function renderSwap(){
   var h='<div class="header"><h1>🔄 Intercambio</h1><div class="sub">Láminas que se pueden intercambiar entre álbumes</div></div>';
   h+='<div class="hdr-spacer"></div>';
   h+='<div style="margin:8px 16px 12px">';
-  h+='<div onclick="openSwapSearch()" style="padding:14px;background:linear-gradient(135deg,#4a5575,#3a4565);color:#fff;border-radius:12px;text-align:center;cursor:pointer;box-shadow:0 2px 6px rgba(74,85,117,.2)">';
+  h+='<div onclick="openSwapSearch()" style="padding:14px;background:linear-gradient(135deg,#eef0f5,#dde2ed);border:1.5px solid #8892ab;color:#3a4055;border-radius:12px;text-align:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.06)">';
   h+='<div style="font-size:20px;margin-bottom:4px">🔍</div>';
   h+='<div style="font-size:13px;font-weight:600">Buscar repetidas para cambio</div>';
-  h+='<div style="font-size:11px;opacity:.7;margin-top:2px">Pega un listado externo y compara con tu álbum</div>';
+  h+='<div style="font-size:11px;opacity:.7;margin-top:2px">Pega las faltantes de alguien y mira qué le puedes dar</div>';
   h+='</div></div>';
   if(albums.length<2){
     h+='<div style="margin:40px 16px;text-align:center"><div style="font-size:48px;margin-bottom:12px">🤝</div>';
@@ -967,8 +971,8 @@ function openSwapSearch(){
   d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px';
   d.innerHTML='<div style="background:#fff;border-radius:16px;padding:20px;max-width:400px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.2)">'
     +'<div style="font-weight:700;color:#3a4055;font-size:16px;margin-bottom:4px">🔍 Buscar repetidas para cambio</div>'
-    +'<div style="font-size:12px;color:#9a918a;margin-bottom:12px">Pega las repetidas de otra persona y te digo cuáles te faltan</div>'
-    +'<textarea id="swap-ta" placeholder="Pega códigos: MEX3, RSA2, KOR8..." style="width:100%;height:100px;padding:10px;border:1.5px solid #8892ab;border-radius:10px;font-size:12px;resize:none;box-sizing:border-box;font-family:inherit"></textarea>'
+    +'<div style="font-size:12px;color:#9a918a;margin-bottom:12px">Pega las láminas que le <strong>faltan</strong> a otra persona y te digo cuáles de tus repetidas le sirven</div>'
+    +'<textarea id="swap-ta" placeholder="Pega las faltantes: MEX3, RSA2, KOR8..." style="width:100%;height:100px;padding:10px;border:1.5px solid #8892ab;border-radius:10px;font-size:12px;resize:none;box-sizing:border-box;font-family:inherit"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:10px">'
     +'<button id="swap-go" style="flex:1;padding:10px;border:none;background:#4a5575;color:#fff;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">🔍 Comparar</button>'
     +'<button id="swap-close" style="padding:10px 16px;border:none;background:#eef0f5;color:#4a5575;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Cerrar</button>'
@@ -989,14 +993,14 @@ function openSwapSearch(){
         for(var sj=0;sj<SECS[si].stickers.length;sj++)
           if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
       if(!found){bad.push(c);continue;}
-      if(!owned[found]) need.push(found);
+      if(dupes[found]&&dupes[found]>0) need.push(found);
       else have.push(found);
     }
     var rDiv=document.getElementById('swap-results');
     var rh='';
     if(need.length>0){
       rh+='<div style="background:#edf5e8;border-radius:10px;padding:10px;margin-top:12px">';
-      rh+='<div style="font-size:12px;font-weight:600;color:#4a7a3a;margin-bottom:4px">✅ Te sirven ('+need.length+')</div>';
+      rh+='<div style="font-size:12px;font-weight:600;color:#4a7a3a;margin-bottom:4px">✅ Le puedes dar de tus repetidas ('+need.length+')</div>';
       rh+='<div id="swap-need" style="font-size:11px;color:#374151;line-height:1.6">'+need.join(', ')+'</div>';
       rh+='<div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">';
       rh+='<button onclick="copySwapResult(\'need\')" style="padding:4px 10px;border:none;background:transparent;color:#4a7a3a;font-size:11px;cursor:pointer;font-weight:500">📋 Copiar</button>';
@@ -1005,7 +1009,7 @@ function openSwapSearch(){
     }
     if(have.length>0){
       rh+='<div style="background:#f5ece8;border-radius:10px;padding:10px;margin-top:8px">';
-      rh+='<div style="font-size:12px;font-weight:600;color:#9b5e4a;margin-bottom:4px">❌ Ya tienes ('+have.length+')</div>';
+      rh+='<div style="font-size:12px;font-weight:600;color:#9b5e4a;margin-bottom:4px">❌ No tienes repetidas ('+have.length+')</div>';
       rh+='<div style="font-size:11px;color:#9a918a;line-height:1.6;max-height:60px;overflow-y:auto">'+have.join(', ')+'</div>';
       rh+='</div>';
     }
@@ -1016,7 +1020,7 @@ function openSwapSearch(){
       rh+='<div style="text-align:center;color:#9a918a;margin-top:12px;font-size:13px">Pega las repetidas para comparar</div>';
     }
     if(need.length===0&&(have.length>0||bad.length>0)){
-      rh+='<div style="background:#fef3c7;border-radius:10px;padding:10px;margin-top:8px;text-align:center"><div style="font-size:12px;font-weight:600;color:#92400e">Ninguna te sirve de este listado</div></div>';
+      rh+='<div style="background:#fef3c7;border-radius:10px;padding:10px;margin-top:8px;text-align:center"><div style="font-size:12px;font-weight:600;color:#92400e">No tienes repetidas de las que le faltan</div></div>';
     }
     rDiv.innerHTML=rh;
   };
@@ -1027,7 +1031,7 @@ function copySwapResult(type){
 }
 function waSwapResult(type){
   var el=document.getElementById('swap-'+type);if(!el)return;
-  var msg='🏆 Láminas que me sirven para cambio:\n'+el.textContent;
+  var msg='🏆 Repetidas que te puedo dar:\n'+el.textContent;
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 function copySwap(id){
@@ -1276,6 +1280,8 @@ function copyExport(){
 
 // ─── INIT ───────────────────────────────────────────────
 render();
+window.addEventListener('beforeunload',function(){saveNow();});
+window.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveNow();});
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').then(function(reg){
     reg.update();
