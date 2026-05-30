@@ -400,7 +400,7 @@ loadAlbums();
   }
 })();
 
-var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false,homeOnlyMissing=false;
+var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false,homeOnlyMissing=false,secShowSearch=false;
 // Today counter
 var albumHistory={};
 function loadHistory(){try{var d=JSON.parse(localStorage.getItem("panini2026_history"));if(d)albumHistory=d;}catch(e){}}
@@ -540,20 +540,21 @@ function renderHome(){
 function renderSection(){
   var sec=SECS[selSec],st=secStats(sec);
   var h='<div class="header"><div class="hdr-row"><button class="back-btn" onclick="goHome()">←</button><div class="hdr-content"><h1>'+sec.flag+' '+sec.name+'</h1><div class="sub">'+st.have+'/'+st.total+' ('+st.pct+'%)</div></div><button class="toggle-view" onclick="toggleAlbum()">'+(albumMode?'📋 Lista':'📖 Álbum')+'</button></div>';
-  if(!albumMode){
-    h+='<div class="chips">';
-    var filters=[["all","Todas"],["missing","Faltan"],["owned","Tengo"],["dupes","Repetidas"]];
-    for(var i=0;i<filters.length;i++){var f=filters[i];h+='<button class="chip '+(filterMode===f[0]?"chip-on":"chip-off")+'" onclick="setFilter(\''+f[0]+'\')">'+f[1]+'</button>';}
-    h+='</div>';
-  }
+  h+='<div class="chips" style="display:flex;align-items:center">';
+  var filters=[["all","Todas"],["missing","Faltan"],["owned","Tengo"],["dupes","Repetidas"]];
+  for(var i=0;i<filters.length;i++){var f=filters[i];h+='<button class="chip '+(filterMode===f[0]?"chip-on":"chip-off")+'" onclick="setFilter(\''+f[0]+'\')">'+f[1]+'</button>';}
+  h+='<button onclick="secShowSearch=!secShowSearch;render()" style="flex-shrink:0;width:32px;height:32px;border-radius:50%;border:none;background:'+(secShowSearch?'#4a5575':'rgba(255,255,255,.2)')+';color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:auto">🔍</button>';
   h+='</div>';
-  h+='<div class="'+(albumMode?'hdr-spacer':'hdr-spacer-chips')+'"></div>';
+  h+='</div>';
+  h+='<div class="hdr-spacer-chips"></div>';
+  if(secShowSearch){
   h+='<div style="margin:6px 12px 0;background:linear-gradient(135deg,#eef0f5,#dde2ed);border-radius:12px;padding:8px;border:1px solid #8892ab;display:flex;gap:6px">';
   h+='<div style="position:relative;flex:1">';
   h+='<span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>';
   h+='<input class="sec-search" type="text" placeholder="Filtrar por nombre o código..." value="'+secSearchQ.replace(/"/g,'&quot;')+'" oninput="onSecSearch(this.value)" id="secinput" style="padding-left:32px;border-color:#8892ab">';
   h+='</div>';
   h+='</div>';
+  }
   h+='<div style="padding-top:4px">';
   var list=sec.stickers,shown=0,sq=secSearchQ.toLowerCase();
   if(albumMode){
@@ -561,6 +562,9 @@ function renderSection(){
     for(var i=0;i<list.length;i++){
       var s=list[i],has=owned[s.c],dc=dupes[s.c]||0;
       if(sq&&s.c.toLowerCase().indexOf(sq)<0&&s.l.toLowerCase().indexOf(sq)<0) continue;
+      if(filterMode==="missing"&&has) continue;
+      if(filterMode==="owned"&&!has) continue;
+      if(filterMode==="dupes"&&dc===0) continue;
       var isFoil=s.fo?true:false;
       var cls='album-card';
       if(has){cls+=isFoil?' album-card-foil album-card-owned':' album-card-owned';}
@@ -687,7 +691,7 @@ function switchTab(tab){activeTab=tab;bulkMode=null;bulkText="";bulkResult=null;
 }
 function goHome(){view="home";activeTab="home";filterMode="all";searchQ="";render();window.scrollTo(0,0);}
 function goAlbums(){view="albums";activeTab="albums";bulkMode=null;showExport=false;render();window.scrollTo(0,0);}
-function goSec(i){view="section";activeTab="home";selSec=i;filterMode="all";secSearchQ="";render();window.scrollTo(0,0);}
+function goSec(i){view="section";activeTab="home";selSec=i;filterMode="all";secSearchQ="";secShowSearch=false;render();window.scrollTo(0,0);}
 function goSearch(){view="search";activeTab="search";searchQ="";render();}
 function goDupes(){view="dupes";activeTab="albums";render();}
 
