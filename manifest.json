@@ -6,8 +6,8 @@
   "scope": "./",
   "id": "album-mundial-2026",
   "display": "standalone",
-  "background_color": "#1e3a5f",
-  "theme_color": "#1e3a5f",
+  "background_color": "#0f2042",
+  "theme_color": "#0f2042",
   "orientation": "portrait",
   "categories": [
     "sports",
