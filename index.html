@@ -989,7 +989,8 @@ function openSwapSearch(){
   document.getElementById('swap-go').onclick=function(){
     var raw=document.getElementById('swap-ta').value;
     var parts=raw.split(/[,;\s\n]+/);
-    var need=[],have=[],bad=[];
+    var codes=[];
+    var bad=[];
     for(var i=0;i<parts.length;i++){
       var c=parts[i].trim().toUpperCase();if(!c)continue;
       var found=null;
@@ -997,34 +998,42 @@ function openSwapSearch(){
         for(var sj=0;sj<SECS[si].stickers.length;sj++)
           if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
       if(!found){bad.push(c);continue;}
-      if(dupes[found]&&dupes[found]>0) need.push(found);
-      else have.push(found);
+      codes.push(found);
     }
     var rDiv=document.getElementById('swap-results');
     var rh='';
-    if(need.length>0){
-      rh+='<div style="background:#edf5e8;border-radius:10px;padding:10px;margin-top:12px">';
-      rh+='<div style="font-size:12px;font-weight:600;color:#4a7a3a;margin-bottom:4px">✅ Le puedes dar de tus repetidas ('+need.length+')</div>';
-      rh+='<div id="swap-need" style="font-size:11px;color:#374151;line-height:1.6">'+need.join(', ')+'</div>';
-      rh+='<div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">';
-      rh+='<button onclick="copySwapResult(\'need\')" style="padding:4px 10px;border:none;background:transparent;color:#4a7a3a;font-size:11px;cursor:pointer;font-weight:500">📋 Copiar</button>';
-      rh+='<button onclick="waSwapResult(\'need\')" style="padding:4px 10px;border:none;background:transparent;color:#25d366;font-size:11px;cursor:pointer;font-weight:500">💬 WhatsApp</button>';
-      rh+='</div></div>';
-    }
-    if(have.length>0){
-      rh+='<div style="background:#f5ece8;border-radius:10px;padding:10px;margin-top:8px">';
-      rh+='<div style="font-size:12px;font-weight:600;color:#9b5e4a;margin-bottom:4px">❌ No tienes repetidas ('+have.length+')</div>';
-      rh+='<div style="font-size:11px;color:#9a918a;line-height:1.6;max-height:60px;overflow-y:auto">'+have.join(', ')+'</div>';
+    var totalNeed=0;
+    for(var ai=0;ai<albums.length;ai++){
+      var ab=albums[ai],abNeed=[],abNo=[];
+      for(var ci=0;ci<codes.length;ci++){
+        var cd=codes[ci];
+        if(ab.dupes[cd]&&ab.dupes[cd]>0) abNeed.push(cd);
+        else abNo.push(cd);
+      }
+      if(abNeed.length>0) totalNeed+=abNeed.length;
+      rh+='<div style="margin-top:10px;background:#faf8f5;border:1px solid #d9ccb8;border-radius:10px;padding:10px">';
+      rh+='<div style="font-size:13px;font-weight:700;color:#3a4055;margin-bottom:6px">📖 '+ab.name+'</div>';
+      if(abNeed.length>0){
+        rh+='<div style="background:#edf5e8;border-radius:8px;padding:8px;margin-bottom:6px">';
+        rh+='<div style="font-size:11px;font-weight:600;color:#4a7a3a;margin-bottom:3px">✅ Puede dar ('+abNeed.length+')</div>';
+        rh+='<div id="swap-need-'+ai+'" style="font-size:11px;color:#374151;line-height:1.6">'+abNeed.join(', ')+'</div>';
+        rh+='<div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end">';
+        rh+='<button onclick="copySwapResult(\'need-'+ai+'\')" style="padding:3px 8px;border:none;background:transparent;color:#4a7a3a;font-size:10px;cursor:pointer;font-weight:500">📋 Copiar</button>';
+        rh+='<button onclick="waSwapResult(\'need-'+ai+'\')" style="padding:3px 8px;border:none;background:transparent;color:#25d366;font-size:10px;cursor:pointer;font-weight:500">💬 WhatsApp</button>';
+        rh+='</div></div>';
+      } else {
+        rh+='<div style="font-size:11px;color:#9a918a">No tiene repetidas de estas láminas</div>';
+      }
       rh+='</div>';
     }
     if(bad.length>0){
       rh+='<div style="font-size:11px;color:#9a918a;margin-top:8px">⚠️ No encontradas: '+bad.join(', ')+'</div>';
     }
-    if(need.length===0&&have.length===0&&bad.length===0){
-      rh+='<div style="text-align:center;color:#9a918a;margin-top:12px;font-size:13px">Pega las repetidas para comparar</div>';
+    if(codes.length===0&&bad.length===0){
+      rh+='<div style="text-align:center;color:#9a918a;margin-top:12px;font-size:13px">Pega las faltantes para comparar</div>';
     }
-    if(need.length===0&&(have.length>0||bad.length>0)){
-      rh+='<div style="background:#fef3c7;border-radius:10px;padding:10px;margin-top:8px;text-align:center"><div style="font-size:12px;font-weight:600;color:#92400e">No tienes repetidas de las que le faltan</div></div>';
+    if(totalNeed===0&&codes.length>0){
+      rh+='<div style="background:#fef3c7;border-radius:10px;padding:10px;margin-top:8px;text-align:center"><div style="font-size:12px;font-weight:600;color:#92400e">Ningún álbum tiene repetidas de estas láminas</div></div>';
     }
     rDiv.innerHTML=rh;
   };
