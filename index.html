@@ -489,6 +489,7 @@ function renderHome(){
   h+='</div>';
   h+='</div>';
   h+='<div class="hdr-spacer" style="height:calc(200px + env(safe-area-inset-top))"></div>';
+  h+='<div id="home-list">';
   var hq=homeSearchQ.toLowerCase();
   // Check if query matches any stickers (player/code)
   var stickerHits=[];
@@ -533,6 +534,7 @@ function renderHome(){
   }
   if(hq&&stickerHits.length===0&&teams.length===0) h+='<p class="empty">No se encontraron resultados</p>';
   h+='<div style="height:24px"></div>';
+  h+='</div>';
   h+=bottomNav();
   app.innerHTML=h;
 }
@@ -696,8 +698,30 @@ function goSearch(){view="search";activeTab="search";searchQ="";render();}
 function goDupes(){view="dupes";activeTab="albums";render();}
 
 function onSearch(v){searchQ=v;render();}
-var _sst=0;function onSecSearch(v){secSearchQ=v;clearTimeout(_sst);_sst=setTimeout(function(){var inp=document.getElementById("secinput");var hadFocus=document.activeElement===inp;render();if(hadFocus){var ni=document.getElementById("secinput");if(ni){ni.focus();ni.value=v;ni.setSelectionRange(v.length,v.length);}}},250);}
-var _hst=0;function onHomeSearch(v){homeSearchQ=v;clearTimeout(_hst);_hst=setTimeout(function(){var inp=document.getElementById("hinput");var hadFocus=document.activeElement===inp;render();if(hadFocus){var ni=document.getElementById("hinput");if(ni){ni.focus();ni.value=v;ni.setSelectionRange(v.length,v.length);}}},250);}
+var _sst=0;function onSecSearch(v){secSearchQ=v;clearTimeout(_sst);_sst=setTimeout(function(){render();setTimeout(function(){var ni=document.getElementById("secinput");if(ni){ni.focus();ni.value=v;ni.setSelectionRange(v.length,v.length);}},50);},300);}
+var _hst=0;function onHomeSearch(v){homeSearchQ=v;clearTimeout(_hst);_hst=setTimeout(function(){
+  var el=document.getElementById('home-list');
+  if(!el){render();return;}
+  var hq=v.toLowerCase();
+  var stickerHits=[];
+  if(hq&&hq.length>=2){for(var si=0;si<SECS.length&&stickerHits.length<30;si++){var sec=SECS[si];for(var sj=0;sj<sec.stickers.length&&stickerHits.length<30;sj++){var st2=sec.stickers[sj];if(st2.c.toLowerCase().indexOf(hq)>=0||st2.l.toLowerCase().indexOf(hq)>=0){if(!homeOnlyMissing||!owned[st2.c])stickerHits.push({s:st2,sec:sec});}}}}
+  var teamHits=[];if(hq){for(var i=0;i<SECS.length;i++){var sec=SECS[i];if(sec.name.toLowerCase().indexOf(hq)>=0||sec.id.toLowerCase().indexOf(hq)>=0)teamHits.push(i);}}
+  var showStickers=!homeOnlyTeams&&stickerHits.length>0&&(teamHits.length===0||hq.length>=3);
+  var h='';
+  if(showStickers){h+='<div class="sec-title">Láminas encontradas ('+stickerHits.length+(stickerHits.length>=30?'+':'')+')</div>';for(var i=0;i<stickerHits.length;i++){var hit=stickerHits[i],s=hit.s,has=owned[s.c],dc=dupes[s.c]||0;h+='<div class="card" onclick="toggle(\''+s.c+'\')" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer"><div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="badge '+(has?"badge-green":"badge-gray")+'">'+s.c+'</span><span class="sticker-name">'+s.l+'</span></div><div class="search-sec">'+hit.sec.flag+' '+hit.sec.name+'</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'+(has?'<div class="dupe-ctrl"><button class="btn-r btn-minus" onclick="remDupe(event,\''+s.c+'\')">\u2212</button><span class="dupe-num" style="color:'+(dc>0?"#b45309":"#9ca3af")+'">'+dc+'</span><button class="btn-r btn-plus" onclick="addDupe(event,\''+s.c+'\')">+</button></div>':'<span class="add-btn add-btn-off">Agregar</span>')+'</div></div>';}}
+  if(!hq){h+='<div class="sec-title">Secciones Especiales</div>';for(var i=0;i<2;i++){var s=SECS[i],st=secStats(s);h+='<div class="card" onclick="goSec('+i+')"><div class="card-row"><span class="card-name">'+s.flag+' '+s.name+'</span><span class="card-stat">'+st.have+'/'+st.total+' <span style="font-size:11px;color:#c4b8a8;font-weight:400">'+st.pct+'%</span></span></div>'+barHTML(st.pct,"sm")+'</div>';}}
+  var sortLabel=sortMode==="alpha"?"A-Z":sortMode==="progress"?"% \u2191":"% \u2193";
+  if(!showStickers||teamHits.length>0){h+='<div class="sec-title" style="display:flex;justify-content:space-between;align-items:center">'+(hq?'Equipos':'Selecciones (48)')+' <button class="sort-btn" onclick="cycleSort()">'+sortLabel+'</button></div>';}
+  var teams=[];for(var i=2;i<SECS.length;i++){var st=secStats(SECS[i]);teams.push({idx:i,sec:SECS[i],st:st});}
+  if(hq)teams=teams.filter(function(t){return t.sec.name.toLowerCase().indexOf(hq)>=0||t.sec.id.toLowerCase().indexOf(hq)>=0;});
+  if(homeOnlyMissing)teams=teams.filter(function(t){return t.st.pct<100;});
+  if(sortMode==="progress")teams.sort(function(a,b){return b.st.pct-a.st.pct||a.sec.name.localeCompare(b.sec.name);});
+  else if(sortMode==="progress-asc")teams.sort(function(a,b){return a.st.pct-b.st.pct||a.sec.name.localeCompare(b.sec.name);});
+  if(!showStickers||teamHits.length>0){for(var i=0;i<teams.length;i++){var t=teams[i],s=t.sec,st=t.st,done=st.pct===100;h+='<div class="card'+(done?" card-green":"")+'" onclick="goSec('+t.idx+')"><div class="card-row"><div class="card-left"><span class="card-flag">'+s.flag+'</span><span class="card-name">'+s.name+'</span><span class="card-code">'+s.id+'</span></div><span class="card-stat'+(done?" card-stat-done":"")+'">'+st.have+'/'+st.total+' <span style="font-size:11px;color:'+(done?'#4a7a3a':'#c4b8a8')+';font-weight:400">'+st.pct+'%</span></span></div>'+barHTML(st.pct,"sm")+'</div>';}}
+  if(hq&&stickerHits.length===0&&teams.length===0)h+='<p class="empty">No se encontraron resultados</p>';
+  h+='<div style="height:24px"></div>';
+  el.innerHTML=h;
+},150);}
 function cycleSort(){sortMode=sortMode==="alpha"?"progress":sortMode==="progress"?"progress-asc":"alpha";render();}
 function shareWhatsApp(){
   var ta=document.getElementById("exportta");if(!ta) return;
