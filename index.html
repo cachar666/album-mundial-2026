@@ -400,7 +400,7 @@ loadAlbums();
   }
 })();
 
-var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false,homeOnlyMissing=false,secShowSearch=false;
+var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false,homeOnlyMissing=false,secShowSearch=false,expandedAlbum=null;
 // Today counter
 var albumHistory={};
 function loadHistory(){try{var d=JSON.parse(localStorage.getItem("panini2026_history"));if(d)albumHistory=d;}catch(e){}}
@@ -703,7 +703,8 @@ function shareWhatsApp(){
   var ta=document.getElementById("exportta");if(!ta) return;
   var labels={owned:"TENGO",missing:"ME FALTAN",dupes:"REPETIDAS",onlyowned:"TENGO (sin repetidas)"};
   var label=labels[exportMode]||"TENGO";
-  var msg="🏆 Álbum Mundial 2026\n"+label+":\n"+ta.value;
+  var an=getAlbum(currentAlbumId);var aname=an?an.name:'Álbum';
+  var msg="🏆 "+aname+" - Álbum Mundial 2026\n"+label+":\n"+ta.value;
   window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
 }
 function setFilter(f){filterMode=f;render();}
@@ -911,7 +912,8 @@ function renderTools(){
   }
   if(showExport){
     var expText=exportMode==="owned"?buildExportText():exportMode==="missing"?buildMissingText():exportMode==="dupes"?buildDupesText():buildOwnedOnlyText();
-    var expHint=exportMode==="owned"?"Todas las que tengo (repetidas aparecen N veces)":exportMode==="missing"?"Códigos de láminas que te faltan":exportMode==="dupes"?"Solo láminas repetidas con cantidad":exportMode==="onlyowned"?"Solo las que tengo, sin contar repetidas":"";
+    var an2=getAlbum(currentAlbumId);var aname2=an2?an2.name:'Álbum';
+    var expHint=aname2+' · '+(exportMode==="owned"?"Todas las que tengo (repetidas aparecen N veces)":exportMode==="missing"?"Códigos de láminas que faltan":exportMode==="dupes"?"Solo láminas repetidas con cantidad":"Solo las que tengo, sin contar repetidas");
     h+='<div class="export-panel">';
     h+='<div class="exp-tabs" style="flex-wrap:wrap">';
     h+='<button class="exp-tab'+(exportMode==="owned"?" exp-tab-on":"")+'" onclick="exportMode=\'owned\';render()">📤 Tengo ('+oc+')</button>';
@@ -1163,24 +1165,26 @@ function renderAlbums(){
     var abDc=0;for(var k in ab.dupes)abDc+=(ab.dupes[k]||0);
     var abMiss=TOTAL-abSt;
     var isCur=ab.id===currentAlbumId;
-    var isCur=ab.id===currentAlbumId;
-    h+='<div style="background:'+(isCur?'#faf8f5':'#fff')+';border:1.5px solid '+(isCur?'#c4a882':'#e5e1db')+';border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)">';
-    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
-    h+='<div style="display:flex;align-items:center;gap:8px;flex:1">';
-    h+='<button onclick="switchAlbum(\''+ab.id+'\');goHome()" style="border:none;background:'+(isCur?'#8b6f47':'#d6cfc5')+';color:'+(isCur?'#fff':'#7a7063')+';border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center" title="Ir al álbum">🏠</button>';
-    h+='<div onclick="switchAlbum(\''+ab.id+'\');goHome()" style="cursor:pointer"><div style="font-weight:700;color:'+(isCur?'#5c4a2d':'#4a4540')+';font-size:15px">'+ab.name+'</div>';
-    h+='<div style="font-size:11px;color:#9a918a">'+abPct+'% completado</div></div>';
+    var isExp=expandedAlbum===ab.id;
+    h+='<div style="background:'+(isCur?'#faf8f5':'#fff')+';border:1.5px solid '+(isCur?'#c4a882':'#e5e1db')+';border-radius:14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);overflow:hidden">';
+    h+='<div onclick="expandedAlbum=expandedAlbum===\''+ab.id+'\'?null:\''+ab.id+'\';render()" style="padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px">';
+    h+='<button onclick="event.stopPropagation();switchAlbum(\''+ab.id+'\');goHome()" style="border:none;background:'+(isCur?'#8b6f47':'#d6cfc5')+';color:'+(isCur?'#fff':'#7a7063')+';border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Ir al álbum">🏠</button>';
+    h+='<div style="flex:1;min-width:0"><div style="font-weight:700;color:'+(isCur?'#5c4a2d':'#4a4540')+';font-size:15px">'+ab.name+'</div>';
+    h+='<div style="font-size:11px;color:#9a918a">'+abSt+'/'+TOTAL+' · '+abPct+'% · 🔄'+abDc+'</div></div>';
+    h+='<span style="font-size:14px;color:#9a918a;transition:transform .2s;transform:rotate('+(isExp?'180':'0')+'deg)">▼</span>';
     h+='</div>';
-    h+='<div style="display:flex;gap:4px">';
-    h+='<button onclick="promptRenameAlbum(\''+ab.id+'\')" style="border:none;background:'+(isCur?'#efe8dd':'#f5f2ee')+';border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:13px">✏️</button>';
-    if(albums.length>1) h+='<button onclick="confirmDeleteAlbum(\''+ab.id+'\')" style="border:none;background:#f9f0ee;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:13px">🗑️</button>';
-    h+='</div></div>';
     h+=barHTML(abPct,'sm');
-    h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;text-align:center;font-size:11px">';
+    if(isExp){
+    h+='<div style="padding:0 14px 14px">';
+    h+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;text-align:center;font-size:11px">';
     h+='<div style="background:#f0ebe4;border-radius:8px;padding:6px 2px"><div style="font-weight:700;color:#5c4a2d;font-size:14px">'+abSt+'</div><div style="color:#9a918a">Tengo</div></div>';
     h+='<div style="background:#f5ece8;border-radius:8px;padding:6px 2px"><div style="font-weight:700;color:#9b5e4a;font-size:14px">'+abMiss+'</div><div style="color:#9a918a">Faltan</div></div>';
     h+='<div style="background:#f5f0e0;border-radius:8px;padding:6px 2px"><div style="font-weight:700;color:#8a7433;font-size:14px">'+abDc+'</div><div style="color:#9a918a">Repetidas</div></div>';
     h+='<div style="background:#e8f0e4;border-radius:8px;padding:6px 2px"><div style="font-weight:700;color:#4a7a3a;font-size:14px">'+abPct+'%</div><div style="color:#9a918a">Avance</div></div>';
+    h+='</div>';
+    h+='<div style="display:flex;gap:4px;margin-top:10px;justify-content:flex-end">';
+    h+='<button onclick="promptRenameAlbum(\''+ab.id+'\')" style="border:none;background:'+(isCur?'#efe8dd':'#f5f2ee')+';border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:13px">✏️</button>';
+    if(albums.length>1) h+='<button onclick="confirmDeleteAlbum(\''+ab.id+'\')" style="border:none;background:#f9f0ee;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:13px">🗑️</button>';
     h+='</div>';
     h+='<fieldset style="border:1px solid '+(isCur?'#d9ccb8':'#e5e1db')+';border-radius:10px;padding:8px;margin:10px 0 0 0"><legend style="font-size:11px;color:#9a918a;font-weight:600;padding:0 6px">📥 Importar</legend>';
     h+='<div style="display:flex;gap:6px">';
@@ -1213,6 +1217,8 @@ function renderAlbums(){
         h+='</div>';
       }
       h+='</fieldset>';
+    }
+    h+='</div>';
     }
     h+='</div>';
   }
