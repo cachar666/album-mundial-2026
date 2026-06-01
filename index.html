@@ -971,6 +971,11 @@ function renderSwap(){
   h+='<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3a4055">Buscar para otro</div><div style="font-size:11px;color:#8892ab;margin-top:2px">Pega faltantes de alguien → mis repetidas que le sirven</div></div>';
   h+='<div style="font-size:18px;color:#4a5575">›</div>';
   h+='</div>';
+  h+='<div onclick="openSwapFull()" style="padding:16px;background:#fff;border:2px solid #b45309;border-radius:14px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.08);display:flex;align-items:center;gap:14px;margin-top:8px">';
+  h+='<div style="width:48px;height:48px;background:#b45309;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🔄</div>';
+  h+='<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#3a4055">Comparar álbum completo</div><div style="font-size:11px;color:#8892ab;margin-top:2px">Pega faltantes + repetidas de alguien → análisis completo</div></div>';
+  h+='<div style="font-size:18px;color:#b45309">›</div>';
+  h+='</div>';
   h+='</div>';
   if(albums.length<2){
     h+='<div style="margin:40px 16px;text-align:center"><div style="font-size:48px;margin-bottom:12px">🤝</div>';
@@ -1024,6 +1029,101 @@ function renderSwap(){
   window.scrollTo(0,0);
 }
 
+function openSwapFull(){
+  var an=getAlbum(currentAlbumId);var aname=an?an.name:'Álbum';
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px';
+  d.innerHTML='<div style="background:#fff;border-radius:16px;padding:20px;max-width:400px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.2)">'
+    +'<div style="font-weight:700;color:#3a4055;font-size:16px;margin-bottom:4px">🔄 Comparar álbum completo</div>'
+    +'<div style="font-size:12px;color:#9a918a;margin-bottom:4px">Álbum activo: <strong>'+aname+'</strong></div>'
+    +'<div style="font-size:11px;color:#9a918a;margin-bottom:10px">Pega el texto de otra persona que incluya sus <strong>faltantes</strong> y/o <strong>repetidas</strong>. Separa las secciones con "Me faltan:" y "Repetidas:"</div>'
+    +'<textarea id="full-ta" placeholder="Me faltan:\nMEX3, RSA2, KOR8...\n\nRepetidas:\nFWC1, BRA5, ARG7..." style="width:100%;height:140px;padding:10px;border:1.5px solid #b45309;border-radius:10px;font-size:12px;resize:none;box-sizing:border-box;font-family:inherit"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
+    +'<button id="full-go" style="flex:1;padding:10px;border:none;background:#b45309;color:#fff;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">🔄 Analizar</button>'
+    +'<button id="full-close" style="padding:10px 16px;border:none;background:#eef0f5;color:#4a5575;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Cerrar</button>'
+    +'</div>'
+    +'<div id="full-results"></div>'
+    +'</div>';
+  document.body.appendChild(d);
+  d.onclick=function(e){if(e.target===d)document.body.removeChild(d);};
+  document.getElementById('full-close').onclick=function(){document.body.removeChild(d);};
+  document.getElementById('full-go').onclick=function(){
+    var raw=document.getElementById('full-ta').value;
+    var faltanRaw='',repRaw='';
+    var lower=raw.toLowerCase();
+    var fi=lower.indexOf('faltan');
+    var ri=lower.indexOf('repetida');
+    if(fi>=0&&ri>=0){
+      if(fi<ri){faltanRaw=raw.substring(fi,ri);repRaw=raw.substring(ri);}
+      else{repRaw=raw.substring(ri,fi);faltanRaw=raw.substring(fi);}
+    } else if(fi>=0){faltanRaw=raw.substring(fi);}
+    else if(ri>=0){repRaw=raw.substring(ri);}
+    else{faltanRaw=raw;repRaw=raw;}
+    // Clean headers from each section
+    faltanRaw=faltanRaw.replace(/^[^\n:]*[:]\s*/i,'');
+    repRaw=repRaw.replace(/^[^\n:]*[:]\s*/i,'');
+    var faltanCodes=parseCodes(faltanRaw);
+    var repCodes=parseCodes(repRaw);
+    // Section 1: their faltantes vs my dupes (what I can give)
+    var canGive=[];
+    for(var i=0;i<faltanCodes.length;i++){
+      var c=faltanCodes[i].toUpperCase();
+      var found=null;
+      for(var si=0;si<SECS.length&&!found;si++)
+        for(var sj=0;sj<SECS[si].stickers.length;sj++)
+          if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
+      if(found&&dupes[found]&&dupes[found]>0) canGive.push(found);
+    }
+    // Section 2: their repetidas vs what I need (what I can receive)
+    var canGet=[];
+    for(var i=0;i<repCodes.length;i++){
+      var c=repCodes[i].toUpperCase();
+      var found=null;
+      for(var si=0;si<SECS.length&&!found;si++)
+        for(var sj=0;sj<SECS[si].stickers.length;sj++)
+          if(SECS[si].stickers[sj].c.toUpperCase()===c){found=SECS[si].stickers[sj].c;break;}
+      if(found&&!owned[found]) canGet.push(found);
+    }
+    var rDiv=document.getElementById('full-results');
+    var rh='';
+    rh+='<div style="font-size:13px;font-weight:700;color:#3a4055;margin-top:14px;margin-bottom:8px">Resultado para '+aname+'</div>';
+    if(canGive.length>0){
+      rh+='<div style="background:#edf5e8;border-radius:10px;padding:10px;margin-bottom:8px">';
+      rh+='<div style="font-size:12px;font-weight:600;color:#4a7a3a;margin-bottom:4px">📤 Le puedo dar ('+canGive.length+')</div>';
+      rh+='<div id="full-give" style="font-size:11px;color:#374151;line-height:1.6;max-height:100px;overflow-y:auto">'+canGive.join(', ')+'</div>';
+      rh+='<div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end">';
+      rh+='<button onclick="copySwapResult(\'full-give\')" style="padding:3px 8px;border:none;background:transparent;color:#4a7a3a;font-size:10px;cursor:pointer;font-weight:500">📋 Copiar</button>';
+      rh+='<button onclick="waSwapResult(\'full-give\')" style="padding:3px 8px;border:none;background:transparent;color:#25d366;font-size:10px;cursor:pointer;font-weight:500">💬 WhatsApp</button>';
+      rh+='</div></div>';
+    } else {
+      rh+='<div style="background:#f5f2ee;border-radius:10px;padding:8px;margin-bottom:8px;font-size:11px;color:#9a918a">📤 No tengo repetidas de lo que le falta</div>';
+    }
+    if(canGet.length>0){
+      rh+='<div style="background:#e8eef5;border-radius:10px;padding:10px;margin-bottom:8px">';
+      rh+='<div style="font-size:12px;font-weight:600;color:#3a5a7a;margin-bottom:4px">📥 Me sirven ('+canGet.length+')</div>';
+      rh+='<div id="full-get" style="font-size:11px;color:#374151;line-height:1.6;max-height:100px;overflow-y:auto">'+canGet.join(', ')+'</div>';
+      rh+='<div style="display:flex;gap:8px;margin-top:6px;justify-content:flex-end">';
+      rh+='<button onclick="copySwapResult(\'full-get\')" style="padding:3px 8px;border:none;background:transparent;color:#3a5a7a;font-size:10px;cursor:pointer;font-weight:500">📋 Copiar</button>';
+      rh+='<button onclick="waSwapResult(\'full-get\')" style="padding:3px 8px;border:none;background:transparent;color:#25d366;font-size:10px;cursor:pointer;font-weight:500">💬 WhatsApp</button>';
+      rh+='</div></div>';
+    } else {
+      rh+='<div style="background:#f5f2ee;border-radius:10px;padding:8px;margin-bottom:8px;font-size:11px;color:#9a918a">📥 No tiene repetidas que me falten</div>';
+    }
+    // Summary
+    rh+='<div style="background:#faf8f5;border:1px solid #d9ccb8;border-radius:10px;padding:10px;margin-top:4px">';
+    rh+='<div style="font-size:12px;font-weight:600;color:#5c4a2d;margin-bottom:4px">📊 Resumen</div>';
+    rh+='<div style="font-size:11px;color:#6b7280">Le puedo dar: <strong>'+canGive.length+'</strong> · Me sirven: <strong>'+canGet.length+'</strong></div>';
+    if(canGive.length>0&&canGet.length>0){
+      var allText='🔄 Intercambio con '+aname+'\\n\\n📤 Le puedo dar ('+canGive.length+'):\\n'+canGive.join(', ')+'\\n\\n📥 Me sirven ('+canGet.length+'):\\n'+canGet.join(', ');
+      rh+='<div style="display:flex;gap:8px;margin-top:8px">';
+      rh+='<button onclick="navigator.clipboard.writeText(\''+allText.replace(/'/g,"\\u0027")+'\').then(function(){showToast(\'✅ Copiado\')})" style="flex:1;padding:8px;border:none;background:#4a5575;color:#fff;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600">📋 Copiar todo</button>';
+      rh+='<button onclick="window.open(\'https://wa.me/?text=\'+encodeURIComponent(\''+allText.replace(/'/g,"\\u0027")+'\'),\'_blank\')" style="flex:1;padding:8px;border:none;background:#25d366;color:#fff;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600">💬 Enviar todo</button>';
+      rh+='</div>';
+    }
+    rh+='</div>';
+    rDiv.innerHTML=rh;
+  };
+}
 function openSwapReceive(){
   var d=document.createElement('div');
   d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px';
