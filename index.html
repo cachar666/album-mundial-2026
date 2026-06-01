@@ -400,7 +400,7 @@ loadAlbums();
   }
 })();
 
-var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false,homeOnlyMissing=false,secShowSearch=false,expandedAlbum=null;
+var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",homeOnlyTeams=false,homeOnlyMissing=false,secShowSearch=false,expandedAlbum=null,expandedSec=null;
 // Today counter
 var albumHistory={};
 function loadHistory(){try{var d=JSON.parse(localStorage.getItem("panini2026_history"));if(d)albumHistory=d;}catch(e){}}
@@ -515,7 +515,8 @@ function renderHome(){
   if(!hq){
     h+='<div class="sec-title">Secciones Especiales</div>';
     for(var i=0;i<2;i++){var s=SECS[i],st=secStats(s);
-      h+='<div class="card" onclick="goSec('+i+')"><div class="card-row"><span class="card-name">'+s.flag+' '+s.name+'</span><span class="card-stat">'+st.have+'/'+st.total+' <span style="font-size:11px;color:#c4b8a8;font-weight:400">'+st.pct+'%</span></span></div>'+barHTML(st.pct,"sm")+'</div>';
+      h+='<div class="card" onclick="toggleSec('+i+')"><div class="card-row"><span class="card-name">'+s.flag+' '+s.name+'</span><span class="card-stat">'+st.have+'/'+st.total+' <span style="font-size:11px;color:#c4b8a8;font-weight:400">'+st.pct+'%</span></span></div>'+barHTML(st.pct,"sm")+'</div>';
+      if(expandedSec===i){h+=renderSecInline(i);}
     }
   }
   var sortLabel=sortMode==="alpha"?"A-Z":sortMode==="progress"?"% ↑":"% ↓";
@@ -529,7 +530,8 @@ function renderHome(){
   else if(sortMode==="progress-asc") teams.sort(function(a,b){return a.st.pct-b.st.pct||a.sec.name.localeCompare(b.sec.name);});
   if(!showStickers||teamHits.length>0){
     for(var i=0;i<teams.length;i++){var t=teams[i],s=t.sec,st=t.st,done=st.pct===100;
-      h+='<div class="card'+(done?" card-green":"")+'" onclick="goSec('+t.idx+')"><div class="card-row"><div class="card-left"><span class="card-flag">'+s.flag+'</span><span class="card-name">'+s.name+'</span><span class="card-code">'+s.id+'</span></div><span class="card-stat'+(done?" card-stat-done":"")+'">'+st.have+'/'+st.total+' <span style="font-size:11px;color:'+(done?'#4a7a3a':'#c4b8a8')+';font-weight:400">'+st.pct+'%</span></span></div>'+barHTML(st.pct,"sm")+'</div>';
+      h+='<div class="card'+(done?" card-green":"")+'" onclick="toggleSec('+t.idx+')"><div class="card-row"><div class="card-left"><span class="card-flag">'+s.flag+'</span><span class="card-name">'+s.name+'</span><span class="card-code">'+s.id+'</span></div><span class="card-stat'+(done?" card-stat-done":"")+'">'+st.have+'/'+st.total+' <span style="font-size:11px;color:'+(done?'#4a7a3a':'#c4b8a8')+';font-weight:400">'+st.pct+'%</span></span></div>'+barHTML(st.pct,"sm")+'</div>';
+      if(expandedSec===t.idx){h+=renderSecInline(t.idx);}
     }
   }
   if(hq&&stickerHits.length===0&&teams.length===0) h+='<p class="empty">No se encontraron resultados</p>';
@@ -690,6 +692,41 @@ function switchTab(tab){activeTab=tab;bulkMode=null;bulkText="";bulkResult=null;
   else if(tab==="swap"){view="swap";}
   else if(tab==="albums"){view="albums";}
   render();window.scrollTo(0,0);
+}
+function toggleSec(i){expandedSec=expandedSec===i?null:i;render();}
+function renderSecInline(idx){
+  var sec=SECS[idx],list=sec.stickers,st=secStats(sec),h='';
+  h+='<div onclick="event.stopPropagation()" style="padding:8px 0 4px;border-top:1px solid #e5e7eb;margin-top:8px">';
+  h+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;align-items:center">';
+  var fltrs=[["all","Todas"],["missing","Faltan"],["owned","Tengo"],["dupes","Repetidas"]];
+  for(var fi=0;fi<fltrs.length;fi++){var f=fltrs[fi];h+='<button class="chip '+(filterMode===f[0]?"chip-on":"chip-off")+'" onclick="event.stopPropagation();setFilter(\''+f[0]+'\')" style="padding:4px 10px;font-size:11px">'+f[1]+'</button>';}
+  h+='</div>';
+  var sq=secSearchQ.toLowerCase(),shown=0;
+  h+='<div class="sticker-grid">';
+  for(var i=0;i<list.length;i++){
+    var s=list[i],has=owned[s.c],dc=dupes[s.c]||0;
+    if(sq&&s.c.toLowerCase().indexOf(sq)<0&&s.l.toLowerCase().indexOf(sq)<0) continue;
+    if(filterMode==="missing"&&has) continue;
+    if(filterMode==="owned"&&!has) continue;
+    if(filterMode==="dupes"&&dc===0) continue;
+    shown++;
+    var foilCls=s.fo?' sc-foil':'';
+    h+='<div class="sc '+(has?'sc-on':'')+foilCls+'" data-code="'+s.c+'" onclick="event.stopPropagation();toggle(\''+s.c+'\')">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;height:22px">';
+    h+='<span style="font-size:15px;font-weight:700;color:'+(has?'#166534':'#9ca3af')+'">'+s.c+(s.fo?' \u2726':'')+'</span>';
+    h+='<div style="display:flex;align-items:center;gap:4px;visibility:'+(has?'visible':'hidden')+'">';
+    h+='<button style="width:22px;height:22px;border-radius:50%;border:none;background:#fee2e2;color:#dc2626;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="event.stopPropagation();remDupe(event,\''+s.c+'\')">\u2212</button>';
+    h+='<span style="font-size:12px;font-weight:600;color:'+(dc>0?'#b45309':'#22c55e')+';min-width:12px;text-align:center">'+(has?(dc>0?dc:'\u2713'):'')+'</span>';
+    h+='<button style="width:22px;height:22px;border-radius:50%;border:none;background:#fef3c7;color:#b45309;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="event.stopPropagation();addDupe(event,\''+s.c+'\')">+</button>';
+    h+='</div></div>';
+    var sn=s.l.replace(sec.name+' - ','');
+    h+='<div style="font-size:12px;margin-top:2px;color:'+(has?'#15803d':'#9ca3af')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+sn+'</div>';
+    h+='</div>';
+  }
+  h+='</div>';
+  if(shown===0) h+='<p class="empty" style="font-size:12px">No hay láminas con este filtro</p>';
+  h+='</div>';
+  return h;
 }
 function goHome(){view="home";activeTab="home";filterMode="all";searchQ="";render();window.scrollTo(0,0);}
 function goAlbums(){view="albums";activeTab="albums";bulkMode=null;showExport=false;render();window.scrollTo(0,0);}
