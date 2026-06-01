@@ -515,8 +515,10 @@ function renderHome(){
   if(!hq){
     h+='<div class="sec-title">Secciones Especiales</div>';
     for(var i=0;i<2;i++){var s=SECS[i],st=secStats(s);
-      h+='<div class="card" onclick="toggleSec('+i+')"><div class="card-row"><span class="card-name">'+s.flag+' '+s.name+'</span><span class="card-stat">'+st.have+'/'+st.total+' <span style="font-size:11px;color:#c4b8a8;font-weight:400">'+st.pct+'%</span></span></div>'+barHTML(st.pct,"sm")+'</div>';
-      if(expandedSec===i){h+=renderSecInline(i);}
+      var isSecExp=expandedSec===i;
+      h+='<div class="card" style="'+(isSecExp?'border-color:#4a5575;border-width:2px':'')+'"><div onclick="toggleSec('+i+')" style="cursor:pointer"><div class="card-row"><span class="card-name">'+s.flag+' '+s.name+'</span><div style="display:flex;align-items:center;gap:6px"><span class="card-stat">'+st.have+'/'+st.total+' <span style="font-size:11px;color:#c4b8a8;font-weight:400">'+st.pct+'%</span></span><span style="font-size:12px;color:#9ca3af;transition:transform .2s;transform:rotate('+(isSecExp?'180':'0')+'deg)">▼</span></div></div>'+barHTML(st.pct,"sm")+'</div>';
+      if(isSecExp){h+=renderSecInline(i);}
+      h+='</div>';
     }
   }
   var sortLabel=sortMode==="alpha"?"A-Z":sortMode==="progress"?"% ↑":"% ↓";
@@ -530,8 +532,11 @@ function renderHome(){
   else if(sortMode==="progress-asc") teams.sort(function(a,b){return a.st.pct-b.st.pct||a.sec.name.localeCompare(b.sec.name);});
   if(!showStickers||teamHits.length>0){
     for(var i=0;i<teams.length;i++){var t=teams[i],s=t.sec,st=t.st,done=st.pct===100;
-      h+='<div class="card'+(done?" card-green":"")+'" onclick="toggleSec('+t.idx+')"><div class="card-row"><div class="card-left"><span class="card-flag">'+s.flag+'</span><span class="card-name">'+s.name+'</span><span class="card-code">'+s.id+'</span></div><span class="card-stat'+(done?" card-stat-done":"")+'">'+st.have+'/'+st.total+' <span style="font-size:11px;color:'+(done?'#4a7a3a':'#c4b8a8')+';font-weight:400">'+st.pct+'%</span></span></div>'+barHTML(st.pct,"sm")+'</div>';
-      if(expandedSec===t.idx){h+=renderSecInline(t.idx);}
+      var isSecExp2=expandedSec===t.idx;
+      h+='<div class="card'+(done?" card-green":"")+'" style="'+(isSecExp2?'border-color:#4a5575;border-width:2px':'')+'">';
+      h+='<div onclick="toggleSec('+t.idx+')" style="cursor:pointer"><div class="card-row"><div class="card-left"><span class="card-flag">'+s.flag+'</span><span class="card-name">'+s.name+'</span><span class="card-code">'+s.id+'</span></div><div style="display:flex;align-items:center;gap:6px"><span class="card-stat'+(done?" card-stat-done":"")+'">'+st.have+'/'+st.total+' <span style="font-size:11px;color:'+(done?'#4a7a3a':'#c4b8a8')+';font-weight:400">'+st.pct+'%</span></span><span style="font-size:12px;color:#9ca3af;transition:transform .2s;transform:rotate('+(isSecExp2?'180':'0')+'deg)">▼</span></div></div>'+barHTML(st.pct,"sm")+'</div>';
+      if(isSecExp2){h+=renderSecInline(t.idx);}
+      h+='</div>';
     }
   }
   if(hq&&stickerHits.length===0&&teams.length===0) h+='<p class="empty">No se encontraron resultados</p>';
