@@ -400,7 +400,7 @@ loadAlbums();
   }
 })();
 
-var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",hfMissing=false,hfDupes=false,hfSpecial=false,secShowSearch=false,expandedAlbum=null,expandedSec=null;
+var view="home",selSec=null,filterMode="all",searchQ="",albumMode=false,bulkMode=null,bulkText="",bulkResult=null,showExport=false,exportMode="owned",checkResult="",secSearchQ="",homeSearchQ="",sortMode="alpha",activeTab="home",hfMissing=false,hfDupes=false,hfSpecial=false,secShowSearch=false,expandedAlbum=null,expandedSec=null,albumLocked=false;
 // Today counter
 var albumHistory={};
 function loadHistory(){try{var d=JSON.parse(localStorage.getItem("panini2026_history"));if(d)albumHistory=d;}catch(e){}}
@@ -477,6 +477,7 @@ function renderHome(){
   h+='</select>';
   h+='<span style="color:rgba(255,255,255,.6);font-size:11px;margin-right:2px">▼</span>';
   h+='</div>';
+  h+='<button onclick="albumLocked=!albumLocked;render()" style="flex-shrink:0;width:32px;height:32px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:'+(albumLocked?'rgba(255,100,100,.3)':'rgba(255,255,255,.2)')+';font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff">'+(albumLocked?'🔒':'🔓')+'</button>';
   h+='<button onclick="promptNewAlbum()" style="flex-shrink:0;width:32px;height:32px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff">+</button>';
   h+='</div>';
   h+='<div style="display:flex;gap:6px;margin-top:6px;align-items:center">';
@@ -688,14 +689,15 @@ function renderStats(){
 
 // ─── ACTIONS ────────────────────────────────────────────────
 function toggle(c){
+  if(albumLocked){showToast('🔒 Álbum bloqueado');return;}
   if(owned[c]){dupes[c]=(dupes[c]||0)+1;save();render();return;}
   owned[c]=true;addToHistory(currentAlbumId,c);
   save();render();
   
 
 }
-function addDupe(e,c){e.stopPropagation();dupes[c]=(dupes[c]||0)+1;save();render();}
-function remDupe(e,c){e.stopPropagation();if(dupes[c]>0){dupes[c]--;if(dupes[c]===0)delete dupes[c];save();render();}else if(owned[c]){showModal('¿Eliminar <strong>'+c+'</strong> del álbum?<br>No tiene repetidas, se quitará por completo.','Eliminar','modal-danger',function(){delete owned[c];delete dupes[c];save();render();});}}
+function addDupe(e,c){e.stopPropagation();if(albumLocked){showToast('🔒 Álbum bloqueado');return;}dupes[c]=(dupes[c]||0)+1;save();render();}
+function remDupe(e,c){e.stopPropagation();if(albumLocked){showToast('🔒 Álbum bloqueado');return;}if(dupes[c]>0){dupes[c]--;if(dupes[c]===0)delete dupes[c];save();render();}else if(owned[c]){showModal('¿Eliminar <strong>'+c+'</strong> del álbum?<br>No tiene repetidas, se quitará por completo.','Eliminar','modal-danger',function(){delete owned[c];delete dupes[c];save();render();});}}
 function switchTab(tab){activeTab=tab;bulkMode=null;bulkText="";bulkResult=null;checkResult="";showExport=false;
   if(tab==="home"){view="home";filterMode="all";searchQ="";homeSearchQ="";}
   else if(tab==="swap"){view="swap";}
